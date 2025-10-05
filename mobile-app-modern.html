@@ -88,7 +88,8 @@
         .main-content {
             flex: 1;
             padding: 0;
-            padding-bottom: 100px;
+            padding-bottom: 140px;
+            overflow: hidden;
         }
         
         /* 页面容器 */
@@ -424,41 +425,49 @@
             width: 100%;
             max-width: 414px;
             height: 80px;
-            background: var(--white);
-            border-top: 1px solid var(--gray-100);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-top: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: space-around;
-            padding: 8px 0;
+            padding: 6px 0;
             z-index: 100;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
         }
         
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             cursor: pointer;
             transition: all 0.2s ease;
-            padding: 8px;
+            padding: 4px;
             border-radius: var(--radius);
+            flex: 1;
+            min-width: 0;
         }
         
         .nav-item.active {
-            color: var(--primary);
+            color: #ff6900;
         }
         
         .nav-item:not(.active) {
-            color: var(--gray-500);
+            color: #64748b;
         }
         
         .nav-icon {
-            font-size: 20px;
+            font-size: 16px;
         }
         
         .nav-label {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
         
         
@@ -714,22 +723,24 @@
             font-size: 14px;
         }
         
-        /* AI助手主界面 */
+        /* AI助手主界面 - 阿里巴巴风格 */
         .ai-assistant-main {
-            height: 100vh;
+            height: calc(100vh - 80px - 60px);
             display: flex;
             flex-direction: column;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            overflow: hidden;
         }
         
-        /* AI助手头部 */
+        /* AI助手头部 - 阿里巴巴风格 */
         .ai-assistant-header {
             display: flex;
             align-items: center;
-            padding: 20px;
-            background: var(--white);
-            border-bottom: 1px solid var(--gray-200);
-            box-shadow: var(--shadow-sm);
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
         }
         
         .ai-avatar-large {
@@ -738,16 +749,17 @@
         }
         
         .avatar-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff6900 0%, #ff8c00 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            color: var(--white);
-            box-shadow: var(--shadow-md);
+            font-size: 20px;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(255, 105, 0, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.8);
         }
         
         .avatar-status {
@@ -761,7 +773,8 @@
         }
         
         .avatar-status.online {
-            background: #10b981;
+            background: #00c853;
+            box-shadow: 0 0 8px rgba(0, 200, 83, 0.4);
         }
         
         .ai-info {
@@ -769,16 +782,18 @@
         }
         
         .ai-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
-            color: var(--gray-900);
+            color: #1a202c;
             margin: 0 0 4px 0;
+            letter-spacing: -0.02em;
         }
         
         .ai-description {
-            font-size: 14px;
-            color: var(--gray-600);
-            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 6px 0;
+            font-weight: 400;
         }
         
         .ai-status-indicator {
@@ -790,14 +805,16 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #10b981;
+            background: #00c853;
             margin-right: 6px;
             animation: pulse 2s infinite;
+            box-shadow: 0 0 4px rgba(0, 200, 83, 0.3);
         }
         
         .status-text {
             font-size: 12px;
-            color: var(--gray-600);
+            color: #64748b;
+            font-weight: 500;
         }
         
         @keyframes pulse {
@@ -806,17 +823,19 @@
             100% { opacity: 1; }
         }
         
-        /* 对话区域 */
+        /* 对话区域 - 阿里巴巴风格 */
         .conversation-area {
             flex: 1;
             position: relative;
             overflow: hidden;
+            min-height: 0;
+            background: #ffffff;
         }
         
         .conversation-container {
             height: 100%;
             overflow-y: auto;
-            padding: 20px;
+            padding: 16px 20px 80px 20px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -839,58 +858,67 @@
         }
         
         .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
         
         .message.ai-message .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--white);
+            background: linear-gradient(135deg, #ff6900 0%, #ff8c00 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(255, 105, 0, 0.2);
         }
         
         .message.user-message .message-avatar {
-            background: var(--gray-200);
-            color: var(--gray-700);
+            background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
         }
         
         .message-content {
-            max-width: 70%;
+            max-width: 75%;
             display: flex;
             flex-direction: column;
         }
         
         .message-text {
-            background: var(--white);
+            background: #ffffff;
             padding: 12px 16px;
-            border-radius: 18px;
+            border-radius: 12px;
             font-size: 14px;
             line-height: 1.5;
-            color: var(--gray-800);
-            box-shadow: var(--shadow-sm);
+            color: #1a202c;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             word-wrap: break-word;
+            border: 1px solid #e2e8f0;
         }
         
         .message.ai-message .message-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--white);
+            background: linear-gradient(135deg, #ff6900 0%, #ff8c00 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(255, 105, 0, 0.25);
         }
         
         .message.user-message .message-text {
-            background: var(--primary);
-            color: var(--white);
+            background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.25);
         }
         
         .message-time {
             font-size: 11px;
-            color: var(--gray-500);
+            color: #94a3b8;
             margin-top: 4px;
             text-align: right;
+            font-weight: 400;
         }
         
         .message.ai-message .message-time {
@@ -971,11 +999,19 @@
             20% { transform: scaleY(1); }
         }
         
-        /* 输入区域 */
+        /* 输入区域 - 固定在页签上方 */
         .input-area {
-            background: var(--white);
-            border-top: 1px solid var(--gray-200);
-            padding: 16px 20px;
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-top: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            z-index: 99;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
         }
         
         .input-container {
@@ -988,10 +1024,18 @@
             flex: 1;
             display: flex;
             align-items: center;
-            background: var(--gray-100);
+            background: #ffffff;
             border-radius: 24px;
             padding: 8px 16px;
             gap: 8px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+        
+        .text-input-container:focus-within {
+            border-color: #ff6900;
+            box-shadow: 0 4px 12px rgba(255, 105, 0, 0.15);
         }
         
         .text-input {
@@ -999,31 +1043,39 @@
             border: none;
             background: transparent;
             font-size: 14px;
-            color: var(--gray-800);
+            color: #1a202c;
             outline: none;
+            font-weight: 400;
         }
         
         .text-input::placeholder {
-            color: var(--gray-500);
+            color: #94a3b8;
         }
         
         .send-btn {
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: var(--primary);
+            background: linear-gradient(135deg, #ff6900 0%, #ff8c00 100%);
             border: none;
-            color: var(--white);
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(255, 105, 0, 0.25);
         }
         
         .send-btn:hover {
-            background: var(--primary-dark);
+            background: linear-gradient(135deg, #e55a00 0%, #e67c00 100%);
             transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 105, 0, 0.35);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
         }
         
         /* 快捷功能 */
@@ -1187,72 +1239,6 @@
         }
         
         
-        /* 底部快速操作图标 */
-        .bottom-quick-actions {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 16px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            border-radius: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-        }
-        
-        .quick-icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .quick-icon-item:hover {
-            transform: translateY(-2px);
-        }
-        
-        .quick-icon-item:active {
-            transform: translateY(0);
-        }
-        
-        .quick-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            color: var(--white);
-            font-size: 16px;
-            margin-bottom: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        .quick-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .quick-icon:active {
-            transform: scale(0.95);
-        }
-        
-        .quick-icon-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--gray-600);
-            text-align: center;
-            transition: color 0.3s ease;
-        }
-        
-        .quick-icon-item:hover .quick-icon-label {
-            color: var(--gray-800);
-        }
         
         /* 搜索栏样式 */
         .search-bar {
@@ -2022,27 +2008,6 @@
                     </div>
                 </div>
                 
-                <!-- 快捷功能 -->
-                <div class="quick-functions">
-                    <div class="function-grid">
-                        <div class="function-item" onclick="showQuickAction('reminder')">
-                            <div class="function-icon">⏰</div>
-                            <div class="function-label">设置提醒</div>
-                        </div>
-                        <div class="function-item" onclick="showQuickAction('record')">
-                            <div class="function-icon">📝</div>
-                            <div class="function-label">记录生活</div>
-                        </div>
-                        <div class="function-item" onclick="showQuickAction('weather')">
-                            <div class="function-icon">🌤️</div>
-                            <div class="function-label">查看天气</div>
-                        </div>
-                        <div class="function-item" onclick="showQuickAction('help')">
-                            <div class="function-icon">❓</div>
-                            <div class="function-label">帮助中心</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -2197,38 +2162,6 @@
 
 
         <!-- 底部快速操作图标 -->
-        <div class="bottom-quick-actions" id="bottomQuickActions">
-            <div class="quick-icon-item" onclick="showRecordModal()">
-                <div class="quick-icon" style="background: var(--primary);">
-                    <i class="fas fa-plus"></i>
-                </div>
-                <div class="quick-icon-label">新建</div>
-            </div>
-            <div class="quick-icon-item" onclick="switchPage('records')">
-                <div class="quick-icon" style="background: var(--success);">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="quick-icon-label">记录</div>
-            </div>
-            <div class="quick-icon-item" onmousedown="startVoiceRecording()" onmouseup="stopVoiceRecording()" ontouchstart="startVoiceRecording()" ontouchend="stopVoiceRecording()">
-                <div class="quick-icon" style="background: #FF6B6B;">
-                    <i class="fas fa-microphone"></i>
-                </div>
-                <div class="quick-icon-label">语音</div>
-            </div>
-            <div class="quick-icon-item" onclick="switchPage('stats')">
-                <div class="quick-icon" style="background: var(--info);">
-                    <i class="fas fa-chart-bar"></i>
-                </div>
-                <div class="quick-icon-label">统计</div>
-            </div>
-            <div class="quick-icon-item" onclick="showReminderModal()">
-                <div class="quick-icon" style="background: var(--warning);">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <div class="quick-icon-label">提醒</div>
-            </div>
-        </div>
 
         <!-- 底部导航栏 -->
         <div class="bottom-nav">
@@ -2243,6 +2176,10 @@
             <div class="nav-item" onclick="switchPage('cards')">
                 <i class="nav-icon fas fa-id-card"></i>
                 <span class="nav-label">卡片</span>
+            </div>
+            <div class="nav-item" onmousedown="startVoiceRecording()" onmouseup="stopVoiceRecording()" ontouchstart="startVoiceRecording()" ontouchend="stopVoiceRecording()">
+                <i class="nav-icon fas fa-microphone" style="background: #FF6B6B;"></i>
+                <span class="nav-label">语音</span>
             </div>
             <div class="nav-item" onclick="switchPage('stats')">
                 <i class="nav-icon fas fa-chart-bar"></i>
@@ -3921,13 +3858,6 @@ END:VCALENDAR`;
                 loadReminders();
             }
             
-            // 控制底部快速操作图标显示
-            const bottomQuickActions = document.getElementById('bottomQuickActions');
-            if (page === 'home') {
-                bottomQuickActions.style.display = 'flex';
-            } else {
-                bottomQuickActions.style.display = 'none';
-            }
             
             
             currentPage = page;
