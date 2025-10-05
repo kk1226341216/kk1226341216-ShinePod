@@ -14,10 +14,11 @@ const wechatConfig = {
 const dbConfig = {
   uri: process.env.MONGO_URI || 'mongodb://localhost:27017/shinepod',
   options: {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false
+    // 移除已废弃的选项
+    // useNewUrlParser: true,  // 已废弃
+    // useUnifiedTopology: true,  // 已废弃
+    // useCreateIndex: true,  // 已废弃
+    // useFindAndModify: false  // 已废弃
   }
 };
 

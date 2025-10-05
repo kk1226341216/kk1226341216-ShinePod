@@ -1,0 +1,70 @@
+# 拾光豆（ShinePod）真实服务配置模板
+
+# ===========================================
+# 微信公众号配置（需要真实值）
+# ===========================================
+# 1. 访问 https://mp.weixin.qq.com/
+# 2. 进入"设置与开发" → "基本配置"
+# 3. 获取以下信息并替换：
+
+WECHAT_APPID=wx1234567890abcdef
+WECHAT_SECRET=abcdef1234567890abcdef1234567890
+WECHAT_TOKEN=your_random_token_string_here
+WECHAT_ENCODING_AES_KEY=your_encoding_aes_key_here
+
+# ===========================================
+# 百度AI配置（需要真实值）
+# ===========================================
+# 1. 访问 https://ai.baidu.com/
+# 2. 创建应用并获取以下信息：
+
+BAIDU_AI_API_KEY=your_baidu_api_key_here
+BAIDU_AI_SECRET_KEY=your_baidu_secret_key_here
+
+# ===========================================
+# 服务器配置
+# ===========================================
+NODE_ENV=production
+PORT=3000
+HOST=0.0.0.0
+
+# 服务器URL（需要HTTPS公网地址）
+WECHAT_SERVER_URL=https://your-domain.com
+
+# ===========================================
+# 数据库配置（文件数据库模式）
+# ===========================================
+# 使用文件数据库，无需MongoDB
+# 数据存储在 ./data/ 目录下
+MONGO_URI=file://./data
+
+# ===========================================
+# 安全配置
+# ===========================================
+JWT_SECRET=your-super-secure-jwt-secret-key-change-this-in-production
+JWT_EXPIRES_IN=7d
+BCRYPT_SALT_ROUNDS=12
+
+# ===========================================
+# 日志配置
+# ===========================================
+LOG_LEVEL=info
+LOG_FILE=./logs/app.log
+
+# ===========================================
+# 生产环境优化
+# ===========================================
+PRODUCTION_GZIP=true
+API_TIMEOUT=30000
+
+# ===========================================
+# 配置说明
+# ===========================================
+# 1. 复制此文件为 .env
+# 2. 替换所有 "your_xxx_here" 为真实值
+# 3. 确保 WECHAT_SERVER_URL 是HTTPS公网地址
+# 4. 重启服务使配置生效
+
+# 配置完成后运行：
+# npm run check-config  # 检查配置
+# npm start            # 启动服务

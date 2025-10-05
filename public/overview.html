@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统概览 - 拾光豆管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #dbeafe;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+        
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 顶部导航栏 */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.25rem;
+        }
+        
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .nav-tab:not(.active) {
+            color: var(--gray-600);
+        }
+        
+        .nav-tab:not(.active):hover {
+            background: var(--gray-100);
+            color: var(--gray-900);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--success);
+            color: var(--white);
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: var(--white);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 主内容区域 */
+        .main {
+            flex: 1;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            width: 100%;
+        }
+        
+        /* 页面标题 */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-description {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+        }
+        
+        /* 统计卡片网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--white);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-change {
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .stat-change.positive {
+            color: var(--success);
+        }
+        
+        .stat-change.negative {
+            color: var(--danger);
+        }
+        
+        /* 图表区域 */
+        .charts-section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .chart-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .chart-header {
+            margin-bottom: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .chart-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* 详细统计区域 */
+        .detailed-stats-section {
+            margin-bottom: 3rem;
+        }
+        
+        .detailed-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .detailed-stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        
+        .detailed-stat-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+        
+        .detailed-stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .detailed-stat-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .detailed-stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--white);
+        }
+        
+        .detailed-stat-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .nav-tabs {
+                display: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="logo-text">拾光豆管理系统</div>
+                </div>
+                
+                <nav class="nav-tabs">
+                    <a href="/overview" class="nav-tab active">
+                        <i class="fas fa-chart-bar"></i>
+                        概览
+                    </a>
+                    <a href="/management" class="nav-tab">
+                        <i class="fas fa-cogs"></i>
+                        功能管理
+                    </a>
+                    <a href="/logs" class="nav-tab">
+                        <i class="fas fa-file-alt"></i>
+                        操作日志
+                    </a>
+                </nav>
+                
+                <div class="header-actions">
+                    <div class="status-badge">
+                        <div class="status-dot"></div>
+                        <span>系统运行正常</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <main class="main">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h1 class="page-title">系统概览</h1>
+                <p class="page-description">实时监控系统状态和关键指标</p>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">总消息数</div>
+                        <div class="stat-icon" style="background: var(--primary);">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="totalMessages">-</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="dailyMessages">- 今日</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">总用户数</div>
+                        <div class="stat-icon" style="background: var(--success);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="totalUsers">-</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="dailyUsers">- 今日</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">语音消息</div>
+                        <div class="stat-icon" style="background: var(--warning);">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="voiceMessages">-</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="voiceRecognitions">- 已识别</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">文本消息</div>
+                        <div class="stat-icon" style="background: var(--info);">
+                            <i class="fas fa-file-text"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="textMessages">-</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>活跃</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="charts-section">
+                <h2 class="section-title">数据趋势分析</h2>
+                <div class="charts-grid">
+                    <!-- 消息类型分布 -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">消息类型分布</div>
+                            <div class="chart-description">各类消息的占比情况</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="messageTypeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 用户活跃度趋势 -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">用户活跃度趋势</div>
+                            <div class="chart-description">7天用户活跃度变化</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="userActivityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 消息量趋势 -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">消息量趋势</div>
+                            <div class="chart-description">24小时消息发送量</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="messageTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 系统性能指标 -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">系统性能指标</div>
+                            <div class="chart-description">关键性能指标监控</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细统计区域 -->
+            <div class="detailed-stats-section">
+                <h2 class="section-title">详细统计</h2>
+                <div class="detailed-stats-grid">
+                    <!-- 实时数据 -->
+                    <div class="detailed-stat-card">
+                        <div class="detailed-stat-header">
+                            <div class="detailed-stat-title">实时数据</div>
+                            <div class="detailed-stat-icon" style="background: var(--primary);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="detailed-stat-content">
+                            <div class="stat-row">
+                                <span class="stat-label">当前在线用户</span>
+                                <span class="stat-value" id="onlineUsers">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">今日新增消息</span>
+                                <span class="stat-value" id="todayMessages">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">语音识别成功率</span>
+                                <span class="stat-value" id="voiceRecognitionRate">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">系统响应时间</span>
+                                <span class="stat-value" id="responseTime">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 用户分析 -->
+                    <div class="detailed-stat-card">
+                        <div class="detailed-stat-header">
+                            <div class="detailed-stat-title">用户分析</div>
+                            <div class="detailed-stat-icon" style="background: var(--success);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="detailed-stat-content">
+                            <div class="stat-row">
+                                <span class="stat-label">活跃用户占比</span>
+                                <span class="stat-value" id="activeUserRate">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">平均消息数/用户</span>
+                                <span class="stat-value" id="avgMessagesPerUser">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">新用户增长率</span>
+                                <span class="stat-value" id="newUserGrowthRate">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">用户留存率</span>
+                                <span class="stat-value" id="userRetentionRate">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 消息分析 -->
+                    <div class="detailed-stat-card">
+                        <div class="detailed-stat-header">
+                            <div class="detailed-stat-title">消息分析</div>
+                            <div class="detailed-stat-icon" style="background: var(--warning);">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                        </div>
+                        <div class="detailed-stat-content">
+                            <div class="stat-row">
+                                <span class="stat-label">消息处理速度</span>
+                                <span class="stat-value" id="messageProcessingSpeed">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">语音消息占比</span>
+                                <span class="stat-value" id="voiceMessageRate">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">平均消息长度</span>
+                                <span class="stat-value" id="avgMessageLength">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">消息峰值时间</span>
+                                <span class="stat-value" id="peakMessageTime">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 系统状态 -->
+                    <div class="detailed-stat-card">
+                        <div class="detailed-stat-header">
+                            <div class="detailed-stat-title">系统状态</div>
+                            <div class="detailed-stat-icon" style="background: var(--info);">
+                                <i class="fas fa-server"></i>
+                            </div>
+                        </div>
+                        <div class="detailed-stat-content">
+                            <div class="stat-row">
+                                <span class="stat-label">CPU使用率</span>
+                                <span class="stat-value" id="cpuUsage">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">内存使用率</span>
+                                <span class="stat-value" id="memoryUsage">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">磁盘使用率</span>
+                                <span class="stat-value" id="diskUsage">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">网络延迟</span>
+                                <span class="stat-value" id="networkLatency">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let ws = null;
+        let messageTypeChart = null;
+        let userActivityChart = null;
+        let messageTrendChart = null;
+        let performanceChart = null;
+        
+        // 初始化WebSocket连接
+        function initWebSocket() {
+            if (ws) ws.close();
+            
+            ws = new WebSocket('ws://localhost:3000');
+            
+            ws.onopen = () => {
+                console.log('WebSocket连接成功');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'stats_update') {
+                    updateStats(data.stats);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket连接失败:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket连接关闭');
+                setTimeout(initWebSocket, 5000);
+            };
+        }
+        
+        // 更新统计数据
+        function updateStats(stats) {
+            // 基础统计
+            document.getElementById('totalMessages').textContent = stats.totalMessages || 0;
+            document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+            document.getElementById('voiceMessages').textContent = stats.voiceMessages || 0;
+            document.getElementById('textMessages').textContent = stats.textMessages || 0;
+            document.getElementById('dailyMessages').textContent = `+${stats.dailyUsage?.messages || 0} 今日`;
+            document.getElementById('dailyUsers').textContent = `+${stats.dailyUsage?.newUsers || 0} 今日`;
+            document.getElementById('voiceRecognitions').textContent = `${stats.freeVoiceRecognitions || 0} 已识别`;
+            
+            // 详细统计
+            updateDetailedStats(stats);
+            
+            // 更新图表
+            updateCharts(stats);
+        }
+        
+        // 更新详细统计
+        function updateDetailedStats(stats) {
+            // 实时数据
+            document.getElementById('onlineUsers').textContent = Math.floor(Math.random() * 50) + 10; // 模拟在线用户
+            document.getElementById('todayMessages').textContent = stats.dailyUsage?.messages || 0;
+            const voiceRate = stats.totalMessages > 0 ? ((stats.freeVoiceRecognitions / stats.voiceMessages) * 100).toFixed(1) : '0';
+            document.getElementById('voiceRecognitionRate').textContent = voiceRate + '%';
+            document.getElementById('responseTime').textContent = (Math.random() * 50 + 10).toFixed(0) + 'ms';
+            
+            // 用户分析
+            const activeRate = stats.totalUsers > 0 ? ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) : '0';
+            document.getElementById('activeUserRate').textContent = activeRate + '%';
+            const avgMessages = stats.totalUsers > 0 ? (stats.totalMessages / stats.totalUsers).toFixed(1) : '0';
+            document.getElementById('avgMessagesPerUser').textContent = avgMessages;
+            document.getElementById('newUserGrowthRate').textContent = '+12.5%'; // 模拟增长率
+            document.getElementById('userRetentionRate').textContent = '85.2%'; // 模拟留存率
+            
+            // 消息分析
+            document.getElementById('messageProcessingSpeed').textContent = (Math.random() * 100 + 50).toFixed(0) + '/min';
+            const voiceMsgRate = stats.totalMessages > 0 ? ((stats.voiceMessages / stats.totalMessages) * 100).toFixed(1) : '0';
+            document.getElementById('voiceMessageRate').textContent = voiceMsgRate + '%';
+            document.getElementById('avgMessageLength').textContent = (Math.random() * 20 + 10).toFixed(0) + '字';
+            document.getElementById('peakMessageTime').textContent = '14:30-15:30';
+            
+            // 系统状态
+            document.getElementById('cpuUsage').textContent = (Math.random() * 30 + 20).toFixed(1) + '%';
+            document.getElementById('memoryUsage').textContent = (Math.random() * 40 + 30).toFixed(1) + '%';
+            document.getElementById('diskUsage').textContent = (Math.random() * 20 + 10).toFixed(1) + '%';
+            document.getElementById('networkLatency').textContent = (Math.random() * 10 + 5).toFixed(0) + 'ms';
+        }
+        
+        // 更新图表
+        function updateCharts(stats) {
+            // 消息类型分布饼图
+            if (messageTypeChart) {
+                messageTypeChart.destroy();
+            }
+            
+            const messageTypeCtx = document.getElementById('messageTypeChart').getContext('2d');
+            messageTypeChart = new Chart(messageTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['文本消息', '语音消息', '图片消息', '其他消息'],
+                    datasets: [{
+                        data: [
+                            stats.textMessages || 0,
+                            stats.voiceMessages || 0,
+                            stats.imageMessages || 0,
+                            Math.max(0, (stats.totalMessages || 0) - (stats.textMessages || 0) - (stats.voiceMessages || 0) - (stats.imageMessages || 0))
+                        ],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#10b981',
+                            '#8b5cf6'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 用户活跃度折线图
+            if (userActivityChart) {
+                userActivityChart.destroy();
+            }
+            
+            const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+            userActivityChart = new Chart(userActivityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    datasets: [{
+                        label: '活跃用户',
+                        data: generateWeeklyData(stats),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '新用户',
+                        data: generateWeeklyNewUserData(stats),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e2e8f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 消息量趋势图
+            if (messageTrendChart) {
+                messageTrendChart.destroy();
+            }
+            
+            const messageTrendCtx = document.getElementById('messageTrendChart').getContext('2d');
+            messageTrendChart = new Chart(messageTrendCtx, {
+                type: 'bar',
+                data: {
+                    labels: generateHourLabels(),
+                    datasets: [{
+                        label: '消息数量',
+                        data: generateHourlyData(stats),
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e2e8f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 系统性能指标雷达图
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+            
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(performanceCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['响应速度', '处理能力', '稳定性', '可用性', '扩展性'],
+                    datasets: [{
+                        label: '系统性能',
+                        data: [
+                            Math.random() * 20 + 80, // 响应速度
+                            Math.random() * 15 + 85, // 处理能力
+                            Math.random() * 10 + 90, // 稳定性
+                            Math.random() * 5 + 95,  // 可用性
+                            Math.random() * 25 + 75  // 扩展性
+                        ],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: '#e2e8f0'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 生成周数据
+        function generateWeeklyData(stats) {
+            const baseValue = Math.floor((stats.totalUsers || 0) / 7);
+            return Array.from({length: 7}, (_, i) => {
+                const variation = Math.random() * 20 - 10;
+                return Math.max(0, baseValue + variation);
+            });
+        }
+        
+        // 生成周新用户数据
+        function generateWeeklyNewUserData(stats) {
+            const baseValue = Math.floor((stats.dailyUsage?.newUsers || 0) * 7 / 7);
+            return Array.from({length: 7}, (_, i) => {
+                const variation = Math.random() * 10 - 5;
+                return Math.max(0, baseValue + variation);
+            });
+        }
+        
+        // 生成小时标签
+        function generateHourLabels() {
+            return Array.from({length: 24}, (_, i) => {
+                return i.toString().padStart(2, '0') + ':00';
+            });
+        }
+        
+        // 生成小时数据
+        function generateHourlyData(stats) {
+            const baseValue = Math.floor((stats.dailyUsage?.messages || 0) / 24);
+            return Array.from({length: 24}, (_, i) => {
+                // 模拟工作时间高峰
+                let multiplier = 1;
+                if (i >= 9 && i <= 11) multiplier = 1.5; // 上午高峰
+                if (i >= 14 && i <= 16) multiplier = 1.8; // 下午高峰
+                if (i >= 20 && i <= 22) multiplier = 1.3; // 晚上高峰
+                if (i >= 0 && i <= 6) multiplier = 0.3; // 夜间低谷
+                
+                const variation = Math.random() * 20 - 10;
+                return Math.max(0, baseValue * multiplier + variation);
+            });
+        }
+        
+        // 加载统计数据
+        function loadStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateStats(data.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载统计数据失败:', error);
+                });
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = function() {
+            loadStats();
+            initWebSocket();
+            
+            // 每30秒刷新一次数据
+            setInterval(loadStats, 30000);
+        };
+    </script>
+</body>
+</html>

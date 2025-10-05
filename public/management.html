@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能管理 - 拾光豆管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #dbeafe;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+        
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 顶部导航栏 */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.25rem;
+        }
+        
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .nav-tab:not(.active) {
+            color: var(--gray-600);
+        }
+        
+        .nav-tab:not(.active):hover {
+            background: var(--gray-100);
+            color: var(--gray-900);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--success);
+            color: var(--white);
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: var(--white);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 主内容区域 */
+        .main {
+            flex: 1;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            width: 100%;
+        }
+        
+        /* 页面标题 */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-description {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+        }
+        
+        /* 功能区域 */
+        .features-section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .feature-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        
+        .feature-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+        
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .feature-description {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .feature-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: var(--white);
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-200);
+            transform: translateY(-1px);
+        }
+        
+        /* 数据表格 */
+        .data-section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+        
+        .data-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+        }
+        
+        .data-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .data-content {
+            padding: 1.5rem;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .data-table th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+        }
+        
+        .data-table td {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: var(--gray-50);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .nav-tabs {
+                display: none;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="logo-text">拾光豆管理系统</div>
+                </div>
+                
+                <nav class="nav-tabs">
+                    <a href="/overview" class="nav-tab">
+                        <i class="fas fa-chart-bar"></i>
+                        概览
+                    </a>
+                    <a href="/management" class="nav-tab active">
+                        <i class="fas fa-cogs"></i>
+                        功能管理
+                    </a>
+                    <a href="/logs" class="nav-tab">
+                        <i class="fas fa-file-alt"></i>
+                        操作日志
+                    </a>
+                </nav>
+                
+                <div class="header-actions">
+                    <div class="status-badge">
+                        <div class="status-dot"></div>
+                        <span>系统运行正常</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <main class="main">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h1 class="page-title">功能管理</h1>
+                <p class="page-description">管理系统各项功能和数据</p>
+            </div>
+
+            <!-- 功能区域 -->
+            <div class="features-section">
+                <h2 class="section-title">核心功能</h2>
+                <div class="features-grid">
+                    <!-- 消息管理 -->
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <div class="feature-icon" style="background: var(--primary);">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="feature-title">消息管理</div>
+                        </div>
+                        <div class="feature-description">
+                            管理用户消息，支持搜索、过滤和导出功能
+                        </div>
+                        <div class="feature-actions">
+                            <button class="btn btn-primary" onclick="loadMessages()">
+                                <i class="fas fa-download"></i> 加载消息
+                            </button>
+                            <button class="btn btn-success" onclick="searchMessages()">
+                                <i class="fas fa-search"></i> 搜索
+                            </button>
+                            <button class="btn btn-warning" onclick="simulateMessage()">
+                                <i class="fas fa-paper-plane"></i> 模拟
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 用户管理 -->
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <div class="feature-icon" style="background: var(--success);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="feature-title">用户管理</div>
+                        </div>
+                        <div class="feature-description">
+                            管理用户信息，查看用户统计和活跃度
+                        </div>
+                        <div class="feature-actions">
+                            <button class="btn btn-primary" onclick="loadUsers()">
+                                <i class="fas fa-download"></i> 加载用户
+                            </button>
+                            <button class="btn btn-success" onclick="addUser()">
+                                <i class="fas fa-user-plus"></i> 添加用户
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadUserStats()">
+                                <i class="fas fa-chart-line"></i> 统计
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 系统监控 -->
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <div class="feature-icon" style="background: var(--warning);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="feature-title">系统监控</div>
+                        </div>
+                        <div class="feature-description">
+                            监控系统状态，查看日志和性能指标
+                        </div>
+                        <div class="feature-actions">
+                            <button class="btn btn-primary" onclick="testHealth()">
+                                <i class="fas fa-heartbeat"></i> 健康检查
+                            </button>
+                            <button class="btn btn-success" onclick="testWebSocket()">
+                                <i class="fas fa-wifi"></i> 连接测试
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadLogs()">
+                                <i class="fas fa-file-alt"></i> 日志
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 数据管理 -->
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <div class="feature-icon" style="background: var(--info);">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="feature-title">数据管理</div>
+                        </div>
+                        <div class="feature-description">
+                            数据备份、导出和系统设置管理
+                        </div>
+                        <div class="feature-actions">
+                            <button class="btn btn-primary" onclick="createBackup()">
+                                <i class="fas fa-save"></i> 备份
+                            </button>
+                            <button class="btn btn-success" onclick="exportData()">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
+                            <button class="btn btn-danger" onclick="resetStats()">
+                                <i class="fas fa-redo"></i> 重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据展示区域 -->
+            <div class="data-section">
+                <div class="data-header">
+                    <div class="data-title">
+                        <i class="fas fa-table"></i>
+                        数据展示
+                    </div>
+                </div>
+                <div class="data-content">
+                    <div class="table-container">
+                        <table class="data-table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>类型</th>
+                                    <th>ID</th>
+                                    <th>内容</th>
+                                    <th>状态</th>
+                                    <th>时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--gray-500);">
+                                        点击上方按钮加载数据
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentDataType = 'messages';
+        
+        // 初始化WebSocket连接
+        function initWebSocket() {
+            if (ws) ws.close();
+            
+            ws = new WebSocket('ws://localhost:3000');
+            
+            ws.onopen = () => {
+                console.log('WebSocket连接成功');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'new_message') {
+                    addTableRow('message', data);
+                } else if (data.type === 'new_user') {
+                    addTableRow('user', data);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket连接失败:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket连接关闭');
+                setTimeout(initWebSocket, 5000);
+            };
+        }
+        
+        // 加载消息数据
+        function loadMessages() {
+            currentDataType = 'messages';
+            updateTableHeader(['类型', '用户ID', '内容', '状态', '时间', '操作']);
+            
+            fetch('/api/messages')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTableBody(data.data, 'message');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载消息失败:', error);
+                });
+        }
+        
+        // 加载用户数据
+        function loadUsers() {
+            currentDataType = 'users';
+            updateTableHeader(['用户名', '用户ID', '邮箱', '状态', '创建时间', '操作']);
+            
+            fetch('/api/users')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTableBody(data.data, 'user');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载用户失败:', error);
+                });
+        }
+        
+        // 更新表格头部
+        function updateTableHeader(headers) {
+            const thead = document.querySelector('#dataTable thead tr');
+            thead.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
+        }
+        
+        // 更新表格内容
+        function updateTableBody(data, type) {
+            const tbody = document.getElementById('dataTableBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--gray-500);">暂无数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.map(item => {
+                if (type === 'message') {
+                    return `
+                        <tr>
+                            <td>${item.content_type || 'text'}</td>
+                            <td>${item.user_id || '-'}</td>
+                            <td>${item.converted_text || item.raw_content || '-'}</td>
+                            <td><span class="status-badge status-${item.status || 'pending'}">${item.status || 'pending'}</span></td>
+                            <td>${new Date(item.created_at).toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-secondary" onclick="viewMessage('${item._id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                } else if (type === 'user') {
+                    return `
+                        <tr>
+                            <td>${item.username || '-'}</td>
+                            <td>${item.user_id || item._id}</td>
+                            <td>${item.email || '-'}</td>
+                            <td><span class="status-badge status-${item.status || 'active'}">${item.status || 'active'}</span></td>
+                            <td>${new Date(item.created_at).toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-secondary" onclick="viewUser('${item._id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }).join('');
+        }
+        
+        // 添加表格行
+        function addTableRow(type, data) {
+            const tbody = document.getElementById('dataTableBody');
+            const row = document.createElement('tr');
+            
+            if (type === 'message') {
+                row.innerHTML = `
+                    <td>${data.content_type || 'text'}</td>
+                    <td>${data.user_id || '-'}</td>
+                    <td>${data.converted_text || data.raw_content || '-'}</td>
+                    <td><span class="status-badge status-${data.status || 'pending'}">${data.status || 'pending'}</span></td>
+                    <td>${new Date(data.created_at).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="viewMessage('${data._id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+            } else if (type === 'user') {
+                row.innerHTML = `
+                    <td>${data.username || '-'}</td>
+                    <td>${data.user_id || data._id}</td>
+                    <td>${data.email || '-'}</td>
+                    <td><span class="status-badge status-${data.status || 'active'}">${data.status || 'active'}</span></td>
+                    <td>${new Date(data.created_at).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="viewUser('${data._id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+            }
+            
+            tbody.insertBefore(row, tbody.firstChild);
+        }
+        
+        // 搜索消息
+        function searchMessages() {
+            const keyword = prompt('请输入搜索关键词:');
+            if (keyword) {
+                console.log('搜索消息:', keyword);
+                // 这里可以实现搜索逻辑
+            }
+        }
+        
+        // 模拟消息
+        function simulateMessage() {
+            fetch('/api/simulate-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('消息发送成功:', data.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('消息发送失败:', error);
+                });
+        }
+        
+        // 添加用户
+        function addUser() {
+            const username = prompt('请输入用户名:');
+            if (username) {
+                fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: username, 
+                        email: username + '@example.com',
+                        user_id: 'user_' + Date.now()
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('用户添加成功:', data.data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('用户添加失败:', error);
+                    });
+            }
+        }
+        
+        // 其他功能函数
+        function loadUserStats() {
+            console.log('用户统计功能开发中...');
+        }
+        
+        function testHealth() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('健康检查成功:', data.message);
+                })
+                .catch(error => {
+                    console.error('健康检查失败:', error);
+                });
+        }
+        
+        function testWebSocket() {
+            console.log('WebSocket连接测试');
+        }
+        
+        function loadLogs() {
+            window.location.href = '/logs';
+        }
+        
+        function createBackup() {
+            console.log('数据备份功能开发中...');
+        }
+        
+        function exportData() {
+            console.log('数据导出功能开发中...');
+        }
+        
+        function resetStats() {
+            if (confirm('确定要重置统计数据吗？此操作不可恢复！')) {
+                console.log('统计数据重置功能开发中...');
+            }
+        }
+        
+        function viewMessage(id) {
+            console.log('查看消息:', id);
+        }
+        
+        function viewUser(id) {
+            console.log('查看用户:', id);
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = function() {
+            initWebSocket();
+        };
+    </script>
+</body>
+</html>

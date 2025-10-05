@@ -1,0 +1,16 @@
+{
+  "systemName": "拾光豆管理系统",
+  "version": "2.0.0",
+  "maxMessagesPerUser": 1000,
+  "maxUsers": 10000,
+  "autoBackup": true,
+  "backupInterval": 24,
+  "logLevel": "info",
+  "features": {
+    "voiceRecognition": true,
+    "messageSearch": true,
+    "userManagement": true,
+    "dataExport": true,
+    "realTimeSync": true
+  }
+}

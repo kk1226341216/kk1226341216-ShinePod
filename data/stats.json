@@ -1,0 +1,12 @@
+{
+  "totalMessages": 3,
+  "voiceMessages": 0,
+  "textMessages": 3,
+  "imageMessages": 0,
+  "freeVoiceRecognitions": 0,
+  "lastResetDate": "2025-10-05T07:06:50.111Z",
+  "dailyUsage": {
+    "messages": 3,
+    "voiceRecognitions": 0
+  }
+}

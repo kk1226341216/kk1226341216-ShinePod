@@ -1,0 +1,39 @@
+[
+  {
+    "wechat_msg_id": "wx_1759646956224",
+    "user_id": "demo_user_472",
+    "content_type": "voice",
+    "raw_content": "演示消息内容",
+    "converted_text": "演示消息转换结果",
+    "status": "pending",
+    "_id": "msg_1759646956224_uuhzygv74",
+    "created_at": "2025-10-05T06:49:16.224Z"
+  },
+  {
+    "user_id": "admin_1759649043802",
+    "content_type": "text",
+    "raw_content": "管理员测试消息",
+    "converted_text": "管理员测试消息",
+    "_id": "msg_1759649043803_5d5vriz76",
+    "created_at": "2025-10-05T07:24:03.803Z",
+    "status": "pending"
+  },
+  {
+    "user_id": "admin_1759649445717",
+    "content_type": "text",
+    "raw_content": "管理员测试消息",
+    "converted_text": "管理员测试消息",
+    "_id": "msg_1759649445717_x8losbd91",
+    "created_at": "2025-10-05T07:30:45.717Z",
+    "status": "pending"
+  },
+  {
+    "user_id": "admin_1759649446518",
+    "content_type": "text",
+    "raw_content": "管理员测试消息",
+    "converted_text": "管理员测试消息",
+    "_id": "msg_1759649446518_ajzcdc5ch",
+    "created_at": "2025-10-05T07:30:46.518Z",
+    "status": "pending"
+  }
+]
