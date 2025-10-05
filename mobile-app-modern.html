@@ -1128,18 +1128,42 @@
             flex-direction: column;
             justify-content: space-between;
             box-shadow: var(--shadow-lg);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
+            transform: translateX(100%) scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             opacity: 0;
+            cursor: grab;
+            user-select: none;
         }
         
         .card-slide.active {
-            transform: translateX(0);
+            transform: translateX(0) scale(1);
             opacity: 1;
+            z-index: 2;
         }
         
         .card-slide.prev {
-            transform: translateX(-100%);
+            transform: translateX(-100%) scale(0.9);
+            z-index: 1;
+        }
+        
+        .card-slide.next {
+            transform: translateX(100%) scale(0.9);
+            z-index: 1;
+        }
+        
+        .card-slide.dragging {
+            transition: none;
+            cursor: grabbing;
+        }
+        
+        .card-slide.swipe-left {
+            transform: translateX(-100%) rotate(-15deg) scale(0.8);
+            opacity: 0.3;
+        }
+        
+        .card-slide.swipe-right {
+            transform: translateX(100%) rotate(15deg) scale(0.8);
+            opacity: 0.3;
         }
         
         .card-header {
@@ -1194,6 +1218,50 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+        
+        /* 滑动方向指示 */
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 48px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .swipe-indicator.left {
+            left: 20px;
+            color: #ff6b6b;
+        }
+        
+        .swipe-indicator.right {
+            right: 20px;
+            color: #4ecdc4;
+        }
+        
+        .swipe-indicator.show {
+            opacity: 0.8;
+        }
+        
+        /* 卡片堆叠效果 */
+        .cards-carousel {
+            perspective: 1000px;
+        }
+        
+        .card-slide:nth-child(1) {
+            z-index: 3;
+        }
+        
+        .card-slide:nth-child(2) {
+            z-index: 2;
+        }
+        
+        .card-slide:nth-child(3) {
+            z-index: 1;
         }
         
         /* 模态框样式 */
@@ -1617,6 +1685,9 @@
                     <div class="cards-carousel" id="cardsCarousel">
                         <!-- 卡片将通过JavaScript动态生成 -->
                     </div>
+                    <!-- 滑动方向指示器 -->
+                    <div class="swipe-indicator left" id="swipeLeftIndicator">👈</div>
+                    <div class="swipe-indicator right" id="swipeRightIndicator">👉</div>
                 </div>
                 
                 <!-- 添加卡片模态框 -->
@@ -2849,75 +2920,228 @@ END:VCALENDAR`;
             updateCardIndicator();
         }
         
-        // 添加卡片触摸事件
+        // 探探式卡片滑动事件
         function addCardTouchEvents() {
             const cardsCarousel = document.getElementById('cardsCarousel');
+            const swipeLeftIndicator = document.getElementById('swipeLeftIndicator');
+            const swipeRightIndicator = document.getElementById('swipeRightIndicator');
+            
             let startX = 0;
             let startY = 0;
+            let currentX = 0;
+            let currentY = 0;
             let isDragging = false;
+            let isHorizontalSwipe = false;
+            let currentCard = null;
+            let startTime = 0;
             
+            // 触摸开始
             cardsCarousel.addEventListener('touchstart', (e) => {
+                if (cards.length <= 1) return;
+                
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
+                currentX = startX;
+                currentY = startY;
                 isDragging = false;
-            });
+                isHorizontalSwipe = false;
+                startTime = Date.now();
+                
+                // 找到当前活动的卡片
+                currentCard = cardsCarousel.querySelector('.card-slide.active');
+                if (currentCard) {
+                    currentCard.classList.add('dragging');
+                }
+                
+                e.preventDefault();
+            }, { passive: false });
             
+            // 触摸移动
             cardsCarousel.addEventListener('touchmove', (e) => {
-                if (!isDragging) {
-                    const deltaX = Math.abs(e.touches[0].clientX - startX);
-                    const deltaY = Math.abs(e.touches[0].clientY - startY);
-                    if (deltaX > deltaY) {
-                        isDragging = true;
-                    }
+                if (!currentCard || cards.length <= 1) return;
+                
+                currentX = e.touches[0].clientX;
+                currentY = e.touches[0].clientY;
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                
+                // 判断是否为水平滑动
+                if (!isDragging && Math.abs(deltaX) > 10) {
+                    isDragging = true;
+                    isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
                 }
-            });
-            
-            cardsCarousel.addEventListener('touchend', (e) => {
-                if (isDragging) {
-                    const endX = e.changedTouches[0].clientX;
-                    const deltaX = endX - startX;
+                
+                if (isDragging && isHorizontalSwipe) {
+                    // 实时跟随手指移动
+                    const rotation = deltaX * 0.1; // 旋转角度
+                    const scale = Math.max(0.8, 1 - Math.abs(deltaX) / 500); // 缩放
                     
-                    if (Math.abs(deltaX) > 50) { // 滑动距离阈值
-                        if (deltaX > 0) {
-                            prevCard(); // 向右滑动，显示上一张
-                        } else {
-                            nextCard(); // 向左滑动，显示下一张
-                        }
+                    currentCard.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg) scale(${scale})`;
+                    currentCard.style.opacity = Math.max(0.3, 1 - Math.abs(deltaX) / 300);
+                    
+                    // 显示滑动指示器
+                    if (deltaX > 30) {
+                        swipeRightIndicator.classList.add('show');
+                        swipeLeftIndicator.classList.remove('show');
+                    } else if (deltaX < -30) {
+                        swipeLeftIndicator.classList.add('show');
+                        swipeRightIndicator.classList.remove('show');
+                    } else {
+                        swipeLeftIndicator.classList.remove('show');
+                        swipeRightIndicator.classList.remove('show');
                     }
+                    
+                    e.preventDefault();
                 }
+            }, { passive: false });
+            
+            // 触摸结束
+            cardsCarousel.addEventListener('touchend', (e) => {
+                if (!currentCard || !isDragging || !isHorizontalSwipe || cards.length <= 1) {
+                    resetCardPosition();
+                    return;
+                }
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                const deltaTime = Date.now() - startTime;
+                const velocity = Math.abs(deltaX) / deltaTime; // 滑动速度
+                
+                // 判断是否完成滑动
+                const threshold = 80; // 滑动阈值
+                const velocityThreshold = 0.3; // 速度阈值
+                
+                if (Math.abs(deltaX) > threshold || velocity > velocityThreshold) {
+                    // 完成滑动
+                    if (deltaX > 0) {
+                        // 向右滑动 - 上一张
+                        swipeCard('right');
+                    } else {
+                        // 向左滑动 - 下一张
+                        swipeCard('left');
+                    }
+                } else {
+                    // 回弹
+                    resetCardPosition();
+                }
+                
+                // 隐藏指示器
+                swipeLeftIndicator.classList.remove('show');
+                swipeRightIndicator.classList.remove('show');
             });
             
             // 鼠标事件支持
             cardsCarousel.addEventListener('mousedown', (e) => {
+                if (cards.length <= 1) return;
+                
                 startX = e.clientX;
                 startY = e.clientY;
+                currentX = startX;
+                currentY = startY;
                 isDragging = false;
+                isHorizontalSwipe = false;
+                startTime = Date.now();
+                
+                currentCard = cardsCarousel.querySelector('.card-slide.active');
+                if (currentCard) {
+                    currentCard.classList.add('dragging');
+                }
+                
+                e.preventDefault();
             });
             
             cardsCarousel.addEventListener('mousemove', (e) => {
-                if (e.buttons === 1 && !isDragging) {
-                    const deltaX = Math.abs(e.clientX - startX);
-                    const deltaY = Math.abs(e.clientY - startY);
-                    if (deltaX > deltaY) {
-                        isDragging = true;
+                if (!currentCard || !isDragging || cards.length <= 1) return;
+                
+                currentX = e.clientX;
+                currentY = e.clientY;
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                
+                if (!isHorizontalSwipe && Math.abs(deltaX) > 10) {
+                    isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+                }
+                
+                if (isHorizontalSwipe) {
+                    const rotation = deltaX * 0.1;
+                    const scale = Math.max(0.8, 1 - Math.abs(deltaX) / 500);
+                    
+                    currentCard.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg) scale(${scale})`;
+                    currentCard.style.opacity = Math.max(0.3, 1 - Math.abs(deltaX) / 300);
+                    
+                    if (deltaX > 30) {
+                        swipeRightIndicator.classList.add('show');
+                        swipeLeftIndicator.classList.remove('show');
+                    } else if (deltaX < -30) {
+                        swipeLeftIndicator.classList.add('show');
+                        swipeRightIndicator.classList.remove('show');
+                    } else {
+                        swipeLeftIndicator.classList.remove('show');
+                        swipeRightIndicator.classList.remove('show');
                     }
                 }
             });
             
             cardsCarousel.addEventListener('mouseup', (e) => {
-                if (isDragging) {
-                    const endX = e.clientX;
-                    const deltaX = endX - startX;
+                if (!currentCard || !isDragging || !isHorizontalSwipe || cards.length <= 1) {
+                    resetCardPosition();
+                    return;
+                }
+                
+                const deltaX = currentX - startX;
+                const deltaTime = Date.now() - startTime;
+                const velocity = Math.abs(deltaX) / deltaTime;
+                
+                const threshold = 80;
+                const velocityThreshold = 0.3;
+                
+                if (Math.abs(deltaX) > threshold || velocity > velocityThreshold) {
+                    if (deltaX > 0) {
+                        swipeCard('right');
+                    } else {
+                        swipeCard('left');
+                    }
+                } else {
+                    resetCardPosition();
+                }
+                
+                swipeLeftIndicator.classList.remove('show');
+                swipeRightIndicator.classList.remove('show');
+            });
+            
+            // 重置卡片位置
+            function resetCardPosition() {
+                if (currentCard) {
+                    currentCard.classList.remove('dragging');
+                    currentCard.style.transform = '';
+                    currentCard.style.opacity = '';
+                }
+                swipeLeftIndicator.classList.remove('show');
+                swipeRightIndicator.classList.remove('show');
+            }
+            
+            // 执行滑动
+            function swipeCard(direction) {
+                if (currentCard) {
+                    currentCard.classList.remove('dragging');
                     
-                    if (Math.abs(deltaX) > 50) {
-                        if (deltaX > 0) {
-                            prevCard();
-                        } else {
+                    if (direction === 'left') {
+                        currentCard.classList.add('swipe-left');
+                        setTimeout(() => {
                             nextCard();
-                        }
+                            currentCard.classList.remove('swipe-left');
+                        }, 300);
+                    } else {
+                        currentCard.classList.add('swipe-right');
+                        setTimeout(() => {
+                            prevCard();
+                            currentCard.classList.remove('swipe-right');
+                        }, 300);
                     }
                 }
-            });
+            }
         }
         
         // 显示添加卡片模态框
