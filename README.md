@@ -215,13 +215,123 @@ ws.onmessage = (event) => {
 2. **授权回调域名**
    - 设置为你的服务器域名
 
-## 部署建议
+## 部署指南
+
+### 环境准备
+
+1. **安装Node.js和npm**
+   - 前往 [Node.js官网](https://nodejs.org/zh-cn/) 下载并安装最新的LTS版本
+   - 安装完成后，验证安装是否成功：
+     ```bash
+     node --version
+     npm --version
+     ```
+
+2. **配置环境变量**
+   - 复制 `.env.example` 文件为 `.env`
+   - 根据实际情况修改 `.env` 文件中的配置项，包括微信公众号信息、百度AI API密钥、MongoDB连接信息等
+
+### 安装依赖
+
+在项目根目录下运行以下命令安装依赖：
+
+```bash
+npm install
+```
+
+### 运行项目
+
+开发环境：
+
+```bash
+npm run dev
+```
+
+生产环境：
+
+```bash
+npm start
+```
+
+### 手动上传代码到GitHub（推荐方法）
+
+由于GitHub不再支持使用密码进行Git操作，而是要求使用个人访问令牌(PAT)，您有以下两种选择：
+
+#### 选项1：使用个人访问令牌（推荐）
+
+由于您已经创建了个人访问令牌，以下是在本地环境中完成代码推送的详细步骤：
+
+1. **打开终端并导航到项目目录**：
+   ```bash
+   cd /Users/keke/Downloads/AIShinePod
+   ```
+
+2. **验证远程仓库配置**：
+   ```bash
+   git remote -v
+   ```
+   确保输出显示正确的仓库URL：`https://github.com/kk1226341216/kk1226341216-ShinePod.git`
+
+3. **推送代码到GitHub**：
+   ```bash
+   git push -u origin main
+   ```
+
+4. **输入身份验证信息**：
+   - 当系统提示输入"Username"时，输入您的GitHub用户名
+   - 当系统提示输入"Password"时，**不要输入您的GitHub密码**，而是粘贴您刚才生成的个人访问令牌
+
+5. **验证推送是否成功**：
+   - 如果推送成功，您将看到类似以下输出：
+     ```
+     Enumerating objects: XX, done.
+     Counting objects: 100% (XX/XX), done.
+     Delta compression using up to X threads
+     Compressing objects: 100% (XX/XX), done.
+     Writing objects: 100% (XX/XX), X.XX MiB | X.XX MiB/s, done.
+     Total XX (delta XX), reused 0 (delta 0), pack-reused 0
+     To https://github.com/kk1226341216/kk1226341216-ShinePod.git
+      * [new branch]      main -> main
+     Branch 'main' set up to track remote branch 'main' from 'origin'.
+     ```
+
+6. **如果遇到问题**：
+   - 如果推送失败，可以尝试使用以下命令增加Git的HTTP缓冲区大小：
+     ```bash
+     git config --global http.postBuffer 524288000
+     ```
+   - 然后再次尝试推送代码
+
+   - 如果仍然遇到问题，可以选择使用选项2或选项3进行手动上传
+
+#### 选项2：手动上传文件
+
+如果您不想使用命令行，也可以直接通过GitHub网页界面上传代码：
+
+1. 前往 [GitHub](https://github.com/) 并登录您的账户
+2. 访问您的仓库：`https://github.com/kk1226341216/kk1226341216-ShinePod.git`
+3. 点击"Upload files"按钮
+4. 拖放项目文件到上传区域，或点击"choose your files"选择文件
+5. 添加提交信息，然后点击"Commit changes"按钮完成上传
+
+#### 选项3：使用ZIP文件上传
+
+1. 将项目打包成ZIP文件：
+   ```bash
+   cd /Users/keke/Downloads
+   zip -r ShinePodCode.zip AIShinePod/
+   ```
+2. 在GitHub仓库页面，点击"Upload files"按钮
+3. 上传生成的ZIP文件
+4. 添加提交信息，然后点击"Commit changes"按钮完成上传
+
+### 进程管理和反向代理
 
 1. **使用PM2进行进程管理**
 
 ```bash
 npm install pm2 -g
-pm run build # 如果有构建步骤
+npm run build # 如果有构建步骤
 pm start:pm2 # 或 pm2 start server/app.js --name shinepod-wechat
 ```
 
