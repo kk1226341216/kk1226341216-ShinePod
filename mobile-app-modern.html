@@ -1567,22 +1567,38 @@
         };
         
         // 语音录入功能
+        let isRecording = false;
+        let recordingTimer = null;
+        let recordingStartTime = null;
+        let realTimeTranscriptionTimer = null;
+        
         function startVoiceRecording() {
             if (isRecording) return;
             
             isRecording = true;
             recordingStartTime = new Date();
             
+            const voiceFab = document.getElementById('voiceFab');
+            const voiceWave = document.getElementById('voiceWave');
+            const voiceStatusText = document.getElementById('voiceStatusText');
+            const voiceInputText = document.getElementById('voiceInputText');
+            
             // 显示录音状态
-            document.getElementById('voiceFab').classList.add('recording');
-            document.getElementById('voiceInputText').classList.add('recording');
-            document.getElementById('voiceWave').style.display = 'flex';
-            document.getElementById('voiceStatusText').textContent = '正在录音...';
+            voiceFab.classList.add('recording');
+            voiceInputText.classList.add('recording');
+            voiceWave.style.display = 'flex';
+            voiceStatusText.textContent = '正在录音...';
+            voiceInputText.textContent = '正在录音，请说话...';
+            
+            // 开始录音动画
+            startRecordingAnimation();
+            
+            // 开始实时语音转文字
+            startRealTimeTranscription();
             
             // 获取位置信息
             getCurrentLocation();
             
-            // 模拟录音过程
             console.log('开始录音...');
         }
         
@@ -1592,11 +1608,22 @@
             isRecording = false;
             const recordingDuration = new Date() - recordingStartTime;
             
+            const voiceFab = document.getElementById('voiceFab');
+            const voiceInputText = document.getElementById('voiceInputText');
+            const voiceWave = document.getElementById('voiceWave');
+            const voiceStatusText = document.getElementById('voiceStatusText');
+            
             // 隐藏录音状态
-            document.getElementById('voiceFab').classList.remove('recording');
-            document.getElementById('voiceInputText').classList.remove('recording');
-            document.getElementById('voiceWave').style.display = 'none';
-            document.getElementById('voiceStatusText').textContent = '正在转换文字...';
+            voiceFab.classList.remove('recording');
+            voiceInputText.classList.remove('recording');
+            voiceWave.style.display = 'none';
+            voiceStatusText.textContent = '正在转换文字...';
+            
+            // 停止录音动画
+            stopRecordingAnimation();
+            
+            // 停止实时转文字
+            stopRealTimeTranscription();
             
             // 模拟语音转文字
             setTimeout(() => {
@@ -1604,6 +1631,53 @@
             }, 500);
             
             console.log('停止录音，时长:', recordingDuration + 'ms');
+        }
+        
+        function startRecordingAnimation() {
+            const voiceBars = document.querySelectorAll('.voice-bar');
+            voiceBars.forEach((bar, index) => {
+                bar.style.animation = `voiceWave 1s ease-in-out infinite ${index * 0.1}s`;
+            });
+        }
+        
+        function stopRecordingAnimation() {
+            const voiceBars = document.querySelectorAll('.voice-bar');
+            voiceBars.forEach(bar => {
+                bar.style.animation = 'none';
+            });
+        }
+        
+        function startRealTimeTranscription() {
+            // 模拟实时语音转文字
+            const transcriptionTexts = [
+                '今天天气很好',
+                '今天天气很好，心情也不错',
+                '今天天气很好，心情也不错，准备出门',
+                '今天天气很好，心情也不错，准备出门散步',
+                '今天天气很好，心情也不错，准备出门散步，享受阳光'
+            ];
+            
+            let currentIndex = 0;
+            const voiceInputText = document.getElementById('voiceInputText');
+            
+            realTimeTranscriptionTimer = setInterval(() => {
+                if (!isRecording) {
+                    clearInterval(realTimeTranscriptionTimer);
+                    return;
+                }
+                
+                if (currentIndex < transcriptionTexts.length) {
+                    voiceInputText.textContent = transcriptionTexts[currentIndex];
+                    currentIndex++;
+                }
+            }, 1000);
+        }
+        
+        function stopRealTimeTranscription() {
+            if (realTimeTranscriptionTimer) {
+                clearInterval(realTimeTranscriptionTimer);
+                realTimeTranscriptionTimer = null;
+            }
         }
         
         function simulateVoiceToText(duration) {
@@ -1778,11 +1852,12 @@
             const appContainer = document.querySelector('.app-container');
             let isDragging = false;
             let startX, startY, startLeft, startTop;
+            let dragThreshold = 5; // 拖拽阈值，小于此值认为是点击
             
             voiceFab.addEventListener('mousedown', function(e) {
                 if (e.button !== 0) return; // 只响应左键
                 
-                isDragging = true;
+                isDragging = false; // 初始设为false
                 startX = e.clientX;
                 startY = e.clientY;
                 startLeft = parseInt(window.getComputedStyle(voiceFab).left) || 0;
@@ -1793,13 +1868,23 @@
             });
             
             document.addEventListener('mousemove', function(e) {
+                if (startX === undefined || startY === undefined) return;
+                
+                const deltaX = Math.abs(e.clientX - startX);
+                const deltaY = Math.abs(e.clientY - startY);
+                
+                // 如果移动距离超过阈值，开始拖拽
+                if (deltaX > dragThreshold || deltaY > dragThreshold) {
+                    isDragging = true;
+                }
+                
                 if (!isDragging) return;
                 
-                const deltaX = e.clientX - startX;
-                const deltaY = e.clientY - startY;
+                const moveDeltaX = e.clientX - startX;
+                const moveDeltaY = e.clientY - startY;
                 
-                let newLeft = startLeft + deltaX;
-                let newTop = startTop + deltaY;
+                let newLeft = startLeft + moveDeltaX;
+                let newTop = startTop + moveDeltaY;
                 
                 // 限制在app容器范围内
                 const containerRect = appContainer.getBoundingClientRect();
@@ -1813,18 +1898,31 @@
                 voiceFab.style.top = newTop + 'px';
             });
             
-            document.addEventListener('mouseup', function() {
+            document.addEventListener('mouseup', function(e) {
+                if (startX === undefined || startY === undefined) return;
+                
+                const deltaX = Math.abs(e.clientX - startX);
+                const deltaY = Math.abs(e.clientY - startY);
+                
                 if (isDragging) {
+                    // 拖拽结束
                     isDragging = false;
                     voiceFab.style.transition = 'all 0.3s ease';
+                } else if (deltaX < dragThreshold && deltaY < dragThreshold) {
+                    // 点击事件，开始语音录制
+                    startVoiceRecording();
                 }
+                
+                // 重置状态
+                startX = undefined;
+                startY = undefined;
             });
             
             // 触摸事件支持
             voiceFab.addEventListener('touchstart', function(e) {
                 if (e.touches.length !== 1) return;
                 
-                isDragging = true;
+                isDragging = false;
                 const touch = e.touches[0];
                 startX = touch.clientX;
                 startY = touch.clientY;
@@ -1836,14 +1934,23 @@
             });
             
             document.addEventListener('touchmove', function(e) {
-                if (!isDragging || e.touches.length !== 1) return;
+                if (startX === undefined || startY === undefined || e.touches.length !== 1) return;
                 
                 const touch = e.touches[0];
-                const deltaX = touch.clientX - startX;
-                const deltaY = touch.clientY - startY;
+                const deltaX = Math.abs(touch.clientX - startX);
+                const deltaY = Math.abs(touch.clientY - startY);
                 
-                let newLeft = startLeft + deltaX;
-                let newTop = startTop + deltaY;
+                if (deltaX > dragThreshold || deltaY > dragThreshold) {
+                    isDragging = true;
+                }
+                
+                if (!isDragging) return;
+                
+                const moveDeltaX = touch.clientX - startX;
+                const moveDeltaY = touch.clientY - startY;
+                
+                let newLeft = startLeft + moveDeltaX;
+                let newTop = startTop + moveDeltaY;
                 
                 // 限制在app容器范围内
                 const containerRect = appContainer.getBoundingClientRect();
@@ -1859,11 +1966,21 @@
                 e.preventDefault();
             });
             
-            document.addEventListener('touchend', function() {
+            document.addEventListener('touchend', function(e) {
+                if (startX === undefined || startY === undefined) return;
+                
+                const deltaX = Math.abs(e.changedTouches[0].clientX - startX);
+                const deltaY = Math.abs(e.changedTouches[0].clientY - startY);
+                
                 if (isDragging) {
                     isDragging = false;
                     voiceFab.style.transition = 'all 0.3s ease';
+                } else if (deltaX < dragThreshold && deltaY < dragThreshold) {
+                    startVoiceRecording();
                 }
+                
+                startX = undefined;
+                startY = undefined;
             });
         }
         
