@@ -1078,6 +1078,273 @@
             padding: 0 20px 20px 20px;
         }
         
+        /* 卡片页面样式 */
+        .cards-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 20px 0 20px;
+            margin-bottom: 20px;
+        }
+        
+        .cards-controls {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .cards-indicator {
+            font-size: 14px;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .cards-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            overflow: hidden;
+        }
+        
+        .cards-carousel {
+            width: 100%;
+            max-width: 350px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-xl);
+        }
+        
+        .card-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius-xl);
+            padding: 30px;
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            opacity: 0;
+        }
+        
+        .card-slide.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .card-slide.prev {
+            transform: translateX(-100%);
+        }
+        
+        .card-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+        
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        
+        .card-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .card-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px 0;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .card-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .card-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80%;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background: var(--gray-200);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .records-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .record-selection-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .record-selection-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        
+        .record-selection-item.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        
+        .record-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-300);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .record-checkbox.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .record-info {
+            flex: 1;
+        }
+        
+        .record-info-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        
+        .record-info-content {
+            font-size: 12px;
+            color: var(--gray-600);
+            line-height: 1.4;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
         .date-section {
             margin-bottom: 24px;
         }
@@ -1330,6 +1597,49 @@
                 </div>
             </div>
 
+            <!-- 卡片页面 -->
+            <div class="page" id="cardsPage">
+                <div class="cards-page-header">
+                    <div class="cards-controls">
+                        <button class="action-btn" id="addCardBtn" onclick="showAddCardModal()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="action-btn" id="shareCardBtn" onclick="shareCurrentCard()">
+                            <i class="fas fa-share"></i>
+                        </button>
+                    </div>
+                    <div class="cards-indicator">
+                        <span id="currentCardIndex">1</span> / <span id="totalCards">3</span>
+                    </div>
+                </div>
+                
+                <div class="cards-container">
+                    <div class="cards-carousel" id="cardsCarousel">
+                        <!-- 卡片将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 添加卡片模态框 -->
+                <div class="modal" id="addCardModal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>选择记录制作卡片</h3>
+                            <button class="modal-close" onclick="closeAddCardModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="records-selection" id="recordsSelection">
+                                <!-- 记录选择列表将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" onclick="addSelectedRecordsToCards()">添加到卡片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 统计页面 -->
             <div class="page" id="statsPage">
                 <div class="stats-grid">
@@ -1460,6 +1770,10 @@
                 <i class="nav-icon fas fa-book"></i>
                 <span class="nav-label">记录</span>
             </div>
+            <div class="nav-item" onclick="switchPage('cards')">
+                <i class="nav-icon fas fa-id-card"></i>
+                <span class="nav-label">卡片</span>
+            </div>
             <div class="nav-item" onclick="switchPage('stats')">
                 <i class="nav-icon fas fa-chart-bar"></i>
                 <span class="nav-label">统计</span>
@@ -1485,6 +1799,11 @@
         let mediaRecorder = null;
         let audioChunks = [];
         let recognition = null;
+        
+        // 卡片页面相关变量
+        let cards = []; // 存储所有卡片
+        let currentCardIndex = 0; // 当前显示的卡片索引
+        let selectedRecordsForCards = new Set(); // 选中的记录ID
         
         // 页面标题映射
         async function startVoiceRecording() {
@@ -2327,6 +2646,17 @@ END:VCALENDAR`;
                 clearSearch(); // 清除搜索内容
             }
             
+            // 页面特定逻辑
+            if (page === 'cards') {
+                loadCards();
+            } else if (page === 'records') {
+                loadRecords();
+            } else if (page === 'stats') {
+                loadStats();
+            } else if (page === 'reminders') {
+                loadReminders();
+            }
+            
             // 控制底部快速操作图标显示
             const bottomQuickActions = document.getElementById('bottomQuickActions');
             if (page === 'home') {
@@ -2375,6 +2705,337 @@ END:VCALENDAR`;
                         </div>
                     `;
                 });
+        }
+        
+        // 加载卡片页面
+        function loadCards() {
+            // 获取最新的3条记录作为默认卡片
+            fetch('/api/records')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        // 取最新的3条记录
+                        const latestRecords = data.data.slice(0, 3);
+                        cards = latestRecords.map(record => createCardFromRecord(record));
+                        currentCardIndex = 0;
+                        renderCards();
+                        updateCardIndicator();
+                    } else {
+                        cards = [];
+                        renderCards();
+                        updateCardIndicator();
+                    }
+                })
+                .catch(error => {
+                    console.error('加载卡片失败:', error);
+                    cards = [];
+                    renderCards();
+                    updateCardIndicator();
+                });
+        }
+        
+        // 从记录创建卡片
+        function createCardFromRecord(record) {
+            return {
+                id: record.id,
+                title: record.title || '无标题',
+                content: record.content || '无内容',
+                timestamp: record.timestamp,
+                location: record.location || '未知位置',
+                type: record.type || 'voice',
+                icon: getCardIcon(record.type),
+                gradient: getCardGradient(record.type)
+            };
+        }
+        
+        // 获取卡片图标
+        function getCardIcon(type) {
+            const icons = {
+                voice: '🎤',
+                text: '📝',
+                image: '📷',
+                reminder: '⏰',
+                default: '📄'
+            };
+            return icons[type] || icons.default;
+        }
+        
+        // 获取卡片渐变背景
+        function getCardGradient(type) {
+            const gradients = {
+                voice: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                text: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                image: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                reminder: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                default: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            };
+            return gradients[type] || gradients.default;
+        }
+        
+        // 渲染卡片
+        function renderCards() {
+            const cardsCarousel = document.getElementById('cardsCarousel');
+            
+            if (cards.length === 0) {
+                cardsCarousel.innerHTML = `
+                    <div class="card-slide active" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-header">
+                            <div class="card-icon">📄</div>
+                            <div class="card-title">暂无卡片</div>
+                            <div class="card-subtitle">点击 + 按钮添加记录制作卡片</div>
+                        </div>
+                        <div class="card-content">
+                            还没有任何卡片，快去添加一些记录吧！
+                        </div>
+                        <div class="card-footer">
+                            <div class="card-date">
+                                <i class="fas fa-calendar"></i>
+                                <span>拾光豆</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            cardsCarousel.innerHTML = cards.map((card, index) => `
+                <div class="card-slide ${index === currentCardIndex ? 'active' : ''}" 
+                     style="background: ${card.gradient};"
+                     data-index="${index}">
+                    <div class="card-header">
+                        <div class="card-icon">${card.icon}</div>
+                        <div class="card-title">${card.title}</div>
+                        <div class="card-subtitle">${card.type}</div>
+                    </div>
+                    <div class="card-content">
+                        ${card.content}
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>${new Date(card.timestamp).toLocaleDateString('zh-CN')}</span>
+                        </div>
+                        <div class="card-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${card.location}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 添加触摸事件
+            addCardTouchEvents();
+        }
+        
+        // 更新卡片指示器
+        function updateCardIndicator() {
+            document.getElementById('currentCardIndex').textContent = cards.length > 0 ? currentCardIndex + 1 : 0;
+            document.getElementById('totalCards').textContent = cards.length;
+        }
+        
+        // 切换到下一张卡片
+        function nextCard() {
+            if (cards.length <= 1) return;
+            currentCardIndex = (currentCardIndex + 1) % cards.length;
+            renderCards();
+            updateCardIndicator();
+        }
+        
+        // 切换到上一张卡片
+        function prevCard() {
+            if (cards.length <= 1) return;
+            currentCardIndex = (currentCardIndex - 1 + cards.length) % cards.length;
+            renderCards();
+            updateCardIndicator();
+        }
+        
+        // 添加卡片触摸事件
+        function addCardTouchEvents() {
+            const cardsCarousel = document.getElementById('cardsCarousel');
+            let startX = 0;
+            let startY = 0;
+            let isDragging = false;
+            
+            cardsCarousel.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isDragging = false;
+            });
+            
+            cardsCarousel.addEventListener('touchmove', (e) => {
+                if (!isDragging) {
+                    const deltaX = Math.abs(e.touches[0].clientX - startX);
+                    const deltaY = Math.abs(e.touches[0].clientY - startY);
+                    if (deltaX > deltaY) {
+                        isDragging = true;
+                    }
+                }
+            });
+            
+            cardsCarousel.addEventListener('touchend', (e) => {
+                if (isDragging) {
+                    const endX = e.changedTouches[0].clientX;
+                    const deltaX = endX - startX;
+                    
+                    if (Math.abs(deltaX) > 50) { // 滑动距离阈值
+                        if (deltaX > 0) {
+                            prevCard(); // 向右滑动，显示上一张
+                        } else {
+                            nextCard(); // 向左滑动，显示下一张
+                        }
+                    }
+                }
+            });
+            
+            // 鼠标事件支持
+            cardsCarousel.addEventListener('mousedown', (e) => {
+                startX = e.clientX;
+                startY = e.clientY;
+                isDragging = false;
+            });
+            
+            cardsCarousel.addEventListener('mousemove', (e) => {
+                if (e.buttons === 1 && !isDragging) {
+                    const deltaX = Math.abs(e.clientX - startX);
+                    const deltaY = Math.abs(e.clientY - startY);
+                    if (deltaX > deltaY) {
+                        isDragging = true;
+                    }
+                }
+            });
+            
+            cardsCarousel.addEventListener('mouseup', (e) => {
+                if (isDragging) {
+                    const endX = e.clientX;
+                    const deltaX = endX - startX;
+                    
+                    if (Math.abs(deltaX) > 50) {
+                        if (deltaX > 0) {
+                            prevCard();
+                        } else {
+                            nextCard();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 显示添加卡片模态框
+        function showAddCardModal() {
+            const modal = document.getElementById('addCardModal');
+            modal.style.display = 'flex';
+            loadRecordsForSelection();
+        }
+        
+        // 关闭添加卡片模态框
+        function closeAddCardModal() {
+            const modal = document.getElementById('addCardModal');
+            modal.style.display = 'none';
+            selectedRecordsForCards.clear();
+        }
+        
+        // 加载记录供选择
+        function loadRecordsForSelection() {
+            const recordsSelection = document.getElementById('recordsSelection');
+            
+            if (allRecords.length === 0) {
+                recordsSelection.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>暂无记录</h3>
+                        <p>先去记录页面添加一些内容</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            recordsSelection.innerHTML = allRecords.map(record => `
+                <div class="record-selection-item" onclick="toggleRecordSelectionForCard('${record.id}')">
+                    <div class="record-checkbox" id="checkbox-${record.id}"></div>
+                    <div class="record-info">
+                        <div class="record-info-title">${record.title || '无标题'}</div>
+                        <div class="record-info-content">${record.content || '无内容'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 切换记录选择状态
+        function toggleRecordSelectionForCard(recordId) {
+            const checkbox = document.getElementById(`checkbox-${recordId}`);
+            const item = checkbox.closest('.record-selection-item');
+            
+            if (selectedRecordsForCards.has(recordId)) {
+                selectedRecordsForCards.delete(recordId);
+                checkbox.classList.remove('checked');
+                item.classList.remove('selected');
+            } else {
+                selectedRecordsForCards.add(recordId);
+                checkbox.classList.add('checked');
+                item.classList.add('selected');
+            }
+        }
+        
+        // 添加选中的记录到卡片
+        function addSelectedRecordsToCards() {
+            if (selectedRecordsForCards.size === 0) {
+                showToast('请先选择要添加的记录');
+                return;
+            }
+            
+            const selectedRecords = Array.from(selectedRecordsForCards).map(id => 
+                allRecords.find(record => record.id === id)
+            );
+            
+            selectedRecords.forEach(record => {
+                const newCard = createCardFromRecord(record);
+                cards.unshift(newCard); // 添加到开头
+            });
+            
+            currentCardIndex = 0; // 显示第一张新卡片
+            renderCards();
+            updateCardIndicator();
+            closeAddCardModal();
+            
+            showToast(`已添加 ${selectedRecords.length} 张卡片`);
+        }
+        
+        // 分享当前卡片
+        function shareCurrentCard() {
+            if (cards.length === 0) {
+                showToast('没有可分享的卡片');
+                return;
+            }
+            
+            const currentCard = cards[currentCardIndex];
+            const shareText = `${currentCard.title}\n\n${currentCard.content}\n\n时间: ${new Date(currentCard.timestamp).toLocaleString('zh-CN')}\n位置: ${currentCard.location}\n\n来自拾光豆`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: currentCard.title,
+                    text: shareText
+                }).catch(err => {
+                    console.log('分享失败:', err);
+                    fallbackShare(shareText);
+                });
+            } else {
+                fallbackShare(shareText);
+            }
+        }
+        
+        // 备用分享方法
+        function fallbackShare(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('卡片内容已复制到剪贴板');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('卡片内容已复制到剪贴板');
+            });
         }
         
         // 加载统计数据
