@@ -508,8 +508,8 @@
         
         /* 语音录入浮动按钮 */
         .voice-fab {
-            position: fixed;
-            top: 120px;
+            position: absolute;
+            bottom: 140px;
             right: 20px;
             width: 64px;
             height: 64px;
@@ -526,9 +526,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* 确保在app容器内 */
-            max-width: calc(100vw - 40px);
-            max-height: calc(100vh - 40px);
         }
         
         .voice-fab:hover {
@@ -1801,10 +1798,9 @@
                 let newLeft = startLeft + deltaX;
                 let newTop = startTop + deltaY;
                 
-                // 限制在app容器范围内
-                const containerRect = appContainer.getBoundingClientRect();
-                const maxLeft = containerRect.width - voiceFab.offsetWidth;
-                const maxTop = containerRect.height - voiceFab.offsetHeight;
+                // 限制在App容器范围内
+                const maxLeft = appContainer.offsetWidth - voiceFab.offsetWidth;
+                const maxTop = appContainer.offsetHeight - voiceFab.offsetHeight;
                 
                 newLeft = Math.max(0, Math.min(newLeft, maxLeft));
                 newTop = Math.max(0, Math.min(newTop, maxTop));
@@ -1845,10 +1841,9 @@
                 let newLeft = startLeft + deltaX;
                 let newTop = startTop + deltaY;
                 
-                // 限制在app容器范围内
-                const containerRect = appContainer.getBoundingClientRect();
-                const maxLeft = containerRect.width - voiceFab.offsetWidth;
-                const maxTop = containerRect.height - voiceFab.offsetHeight;
+                // 限制在App容器范围内
+                const maxLeft = appContainer.offsetWidth - voiceFab.offsetWidth;
+                const maxTop = appContainer.offsetHeight - voiceFab.offsetHeight;
                 
                 newLeft = Math.max(0, Math.min(newLeft, maxLeft));
                 newTop = Math.max(0, Math.min(newTop, maxTop));
@@ -1926,6 +1921,14 @@
                 bottomQuickActions.style.display = 'flex';
             } else {
                 bottomQuickActions.style.display = 'none';
+            }
+            
+            // 控制浮动语音按钮显示
+            const voiceFab = document.getElementById('voiceFab');
+            if (page === 'home') {
+                voiceFab.style.display = 'flex';
+            } else {
+                voiceFab.style.display = 'none';
             }
             
             currentPage = page;
@@ -2358,8 +2361,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.data.length > 0) {
-                        // 获取最新的3条记录
-                        const latestRecords = data.data.slice(0, 3);
+                        // 获取最新的1条记录
+                        const latestRecords = data.data.slice(0, 1);
                         const latestRecordsContent = document.getElementById('latestRecordsContent');
                         
                         if (latestRecords.length === 0) {

@@ -3,12 +3,17 @@ const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const bodyParser = require('body-parser');
 
 const app = express();
 const server = http.createServer(app);
 
 // 配置静态文件服务
 app.use(express.static(path.join(__dirname, 'public')));
+
+// 配置body-parser
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // 初始化Socket.io
 const io = socketIo(server, {
@@ -187,6 +192,28 @@ app.get('/api/messages', (req, res) => {
 app.get('/api/records', (req, res) => {
   const records = db.readData(db.recordsFile);
   res.json({ success: true, data: records });
+});
+
+// 添加记录
+app.post('/api/records', (req, res) => {
+  try {
+    const records = db.readData(db.recordsFile);
+    const newRecord = {
+      id: Date.now().toString(),
+      title: req.body.title || '新记录',
+      content: req.body.content || '',
+      timestamp: req.body.timestamp || Date.now(),
+      location: req.body.location || '',
+      type: req.body.type || 'voice'
+    };
+    
+    records.unshift(newRecord); // 添加到开头，保持最新记录在前
+    db.saveData(db.recordsFile, records);
+    
+    res.json({ success: true, data: newRecord });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.get('/api/stats', (req, res) => {
