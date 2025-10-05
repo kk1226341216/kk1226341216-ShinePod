@@ -1,6 +1,6 @@
 {
   "totalMessages": 0,
-  "totalRecords": 0,
+  "totalRecords": 37,
   "totalReminders": 0,
   "weeklyActivity": [
     {
@@ -11,7 +11,7 @@
     {
       "day": 1,
       "messages": 0,
-      "records": 0
+      "records": 19
     },
     {
       "day": 2,
