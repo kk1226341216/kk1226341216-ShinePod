@@ -84,56 +84,10 @@
             gap: 4px;
         }
         
-        /* 顶部导航栏 */
-        .header {
-            height: 60px;
-            background: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--gray-100);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--gray-900);
-        }
-        
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        
-        .header-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--gray-100);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray-600);
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .header-btn:hover {
-            background: var(--gray-200);
-            transform: scale(1.05);
-        }
-        
         /* 主内容区域 */
         .main-content {
             flex: 1;
-            padding: 20px;
+            padding: 0;
             padding-bottom: 100px;
         }
         
@@ -271,6 +225,7 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
             margin-bottom: 24px;
+            padding: 20px 20px 0 20px;
         }
         
         .stat-card {
@@ -763,7 +718,7 @@
         .ai-assistant-box {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: var(--radius-xl);
-            margin: 20px;
+            margin: 0;
             padding: 20px;
             box-shadow: var(--shadow-lg);
             color: var(--white);
@@ -1090,6 +1045,8 @@
         .page-actions {
             display: flex;
             gap: 12px;
+            padding: 20px 20px 0 20px;
+            justify-content: flex-end;
         }
         
         .action-btn {
@@ -1118,7 +1075,7 @@
         }
         
         .records-container {
-            padding: 20px;
+            padding: 0 20px 20px 20px;
         }
         
         .date-section {
@@ -1282,11 +1239,6 @@
             </div>
         </div>
 
-        <!-- 顶部导航栏 -->
-        <div class="header">
-            <div class="header-title" id="pageTitle">首页</div>
-        </div>
-        
         <!-- 记录页面搜索栏 -->
         <div class="search-bar" id="searchBar" style="display: none;">
             <div class="search-input-container">
@@ -1362,16 +1314,13 @@
 
             <!-- 记录页面 -->
             <div class="page" id="recordsPage">
-                <div class="page-header">
-                    <h2 class="page-title">记录</h2>
-                    <div class="page-actions">
-                        <button class="action-btn" id="batchSelectBtn" onclick="toggleBatchMode()">
-                            <i class="fas fa-check-square"></i>
-                        </button>
-                        <button class="action-btn" id="batchDeleteBtn" onclick="batchDeleteRecords()" style="display: none;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                <div class="page-actions">
+                    <button class="action-btn" id="batchSelectBtn" onclick="toggleBatchMode()">
+                        <i class="fas fa-check-square"></i>
+                    </button>
+                    <button class="action-btn" id="batchDeleteBtn" onclick="batchDeleteRecords()" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
                 
                 <div class="records-container">
@@ -1412,14 +1361,14 @@
 
             <!-- 提醒页面 -->
             <div class="page" id="remindersPage">
-                <div id="remindersList">
+                <div id="remindersList" style="padding: 20px;">
                     <!-- 提醒列表将通过JavaScript动态生成 -->
                 </div>
             </div>
 
             <!-- 我的页面 -->
             <div class="page" id="profilePage">
-                <div class="profile-section">
+                <div class="profile-section" style="padding: 20px;">
                     <div class="profile-avatar">
                         <i class="fas fa-user"></i>
                     </div>
@@ -1538,14 +1487,6 @@
         let recognition = null;
         
         // 页面标题映射
-        const pageTitles = {
-            home: '首页',
-            records: '记录',
-            stats: '统计',
-            reminders: '提醒',
-            profile: '我的'
-        };
-        
         async function startVoiceRecording() {
             if (isRecording) return;
             
@@ -2377,8 +2318,6 @@ END:VCALENDAR`;
             event.target.closest('.nav-item').classList.add('active');
             
             // 更新页面标题
-            document.getElementById('pageTitle').textContent = pageTitles[page];
-            
             // 控制搜索栏显示
             const searchBar = document.getElementById('searchBar');
             if (page === 'records') {
