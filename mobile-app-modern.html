@@ -506,40 +506,6 @@
             font-weight: 500;
         }
         
-        /* 语音录入浮动按钮 */
-        .voice-fab {
-            position: absolute;
-            bottom: 140px;
-            right: 20px;
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-            color: var(--white);
-            border: none;
-            font-size: 32px;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .voice-fab:hover {
-            transform: scale(1.05);
-        }
-        
-        .voice-fab:active {
-            transform: scale(0.95);
-        }
-        
-        .voice-fab.recording {
-            background: linear-gradient(135deg, #FF3B30, #FF6B6B);
-            animation: pulse 1s infinite;
-        }
         
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -735,27 +701,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* 浮动操作按钮 */
-        .fab {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            transition: all 0.2s ease;
-            z-index: 99;
-        }
-        
-        .fab:hover {
-            transform: scale(1.1);
-        }
         
         /* 响应式设计 */
         @media (max-width: 375px) {
@@ -1483,15 +1428,7 @@
         </div>
 
 
-        <!-- 浮动语音录音按钮 -->
-        <button class="voice-fab" id="voiceFab" onmousedown="startVoiceRecording()" onmouseup="stopVoiceRecording()" ontouchstart="startVoiceRecording()" ontouchend="stopVoiceRecording()">
-            🐼
-        </button>
 
-        <!-- 浮动操作按钮 -->
-        <button class="fab" onclick="showAddModal()">
-            <i class="fas fa-plus"></i>
-        </button>
 
         <!-- 底部快速操作图标 -->
         <div class="bottom-quick-actions" id="bottomQuickActions">
@@ -1797,98 +1734,6 @@
             }, 2000);
         }
         
-        // 使语音按钮可拖动
-        function makeVoiceFabDraggable() {
-            const voiceFab = document.getElementById('voiceFab');
-            const appContainer = document.querySelector('.app-container');
-            let isDragging = false;
-            let startX, startY, startLeft, startTop;
-            
-            voiceFab.addEventListener('mousedown', function(e) {
-                if (e.button !== 0) return; // 只响应左键
-                
-                isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startLeft = parseInt(window.getComputedStyle(voiceFab).left) || 0;
-                startTop = parseInt(window.getComputedStyle(voiceFab).top) || 0;
-                
-                voiceFab.style.transition = 'none';
-                e.preventDefault();
-            });
-            
-            document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
-                
-                const deltaX = e.clientX - startX;
-                const deltaY = e.clientY - startY;
-                
-                let newLeft = startLeft + deltaX;
-                let newTop = startTop + deltaY;
-                
-                // 限制在App容器范围内
-                const maxLeft = appContainer.offsetWidth - voiceFab.offsetWidth;
-                const maxTop = appContainer.offsetHeight - voiceFab.offsetHeight;
-                
-                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-                newTop = Math.max(0, Math.min(newTop, maxTop));
-                
-                voiceFab.style.left = newLeft + 'px';
-                voiceFab.style.top = newTop + 'px';
-            });
-            
-            document.addEventListener('mouseup', function() {
-                if (isDragging) {
-                    isDragging = false;
-                    voiceFab.style.transition = 'all 0.3s ease';
-                }
-            });
-            
-            // 触摸事件支持
-            voiceFab.addEventListener('touchstart', function(e) {
-                if (e.touches.length !== 1) return;
-                
-                isDragging = true;
-                const touch = e.touches[0];
-                startX = touch.clientX;
-                startY = touch.clientY;
-                startLeft = parseInt(window.getComputedStyle(voiceFab).left) || 0;
-                startTop = parseInt(window.getComputedStyle(voiceFab).top) || 0;
-                
-                voiceFab.style.transition = 'none';
-                e.preventDefault();
-            });
-            
-            document.addEventListener('touchmove', function(e) {
-                if (!isDragging || e.touches.length !== 1) return;
-                
-                const touch = e.touches[0];
-                const deltaX = touch.clientX - startX;
-                const deltaY = touch.clientY - startY;
-                
-                let newLeft = startLeft + deltaX;
-                let newTop = startTop + deltaY;
-                
-                // 限制在App容器范围内
-                const maxLeft = appContainer.offsetWidth - voiceFab.offsetWidth;
-                const maxTop = appContainer.offsetHeight - voiceFab.offsetHeight;
-                
-                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-                newTop = Math.max(0, Math.min(newTop, maxTop));
-                
-                voiceFab.style.left = newLeft + 'px';
-                voiceFab.style.top = newTop + 'px';
-                
-                e.preventDefault();
-            });
-            
-            document.addEventListener('touchend', function() {
-                if (isDragging) {
-                    isDragging = false;
-                    voiceFab.style.transition = 'all 0.3s ease';
-                }
-            });
-        }
         
         // 初始化WebSocket连接
         function initWebSocket() {
@@ -1951,13 +1796,6 @@
                 bottomQuickActions.style.display = 'none';
             }
             
-            // 控制浮动语音按钮显示
-            const voiceFab = document.getElementById('voiceFab');
-            if (page === 'home') {
-                voiceFab.style.display = 'flex';
-            } else {
-                voiceFab.style.display = 'none';
-            }
             
             currentPage = page;
             
@@ -2076,15 +1914,6 @@
                 });
         }
         
-        // 显示添加模态框
-        function showAddModal() {
-            const type = prompt('选择类型: 1-记录, 2-提醒');
-            if (type === '1') {
-                showRecordModal();
-            } else if (type === '2') {
-                showReminderModal();
-            }
-        }
         
         // 显示记录模态框
         function showRecordModal() {
@@ -2463,7 +2292,6 @@
             loadStats();
             loadReminders();
             loadLatestRecords(); // 加载最新记录到首页
-            makeVoiceFabDraggable();
         };
     </script>
 </body>
