@@ -88,7 +88,7 @@
         .main-content {
             flex: 1;
             padding: 0;
-            padding-bottom: 140px;
+            padding-bottom: 145px;
             overflow: hidden;
         }
         
@@ -424,50 +424,137 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 414px;
-            height: 80px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-top: 1px solid #e2e8f0;
+            height: 85px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
             display: flex;
             align-items: center;
             justify-content: space-around;
-            padding: 6px 0;
+            padding: 8px 0 12px 0;
             z-index: 100;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
         }
         
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
+            gap: 4px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 4px;
-            border-radius: var(--radius);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 8px 12px;
+            border-radius: 16px;
             flex: 1;
             min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 105, 0, 0.1) 0%, rgba(255, 105, 0, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 16px;
+        }
+        
+        .nav-item:hover::before {
+            opacity: 1;
+        }
+        
+        .nav-item.active::before {
+            opacity: 1;
+            background: linear-gradient(135deg, rgba(255, 105, 0, 0.15) 0%, rgba(255, 105, 0, 0.08) 100%);
         }
         
         .nav-item.active {
             color: #ff6900;
+            transform: translateY(-2px);
         }
         
         .nav-item:not(.active) {
             color: #64748b;
         }
         
+        .nav-item:hover {
+            transform: translateY(-1px);
+            color: #ff6900;
+        }
+        
         .nav-icon {
-            font-size: 16px;
+            font-size: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav-item.active .nav-icon {
+            transform: scale(1.1);
+            filter: drop-shadow(0 2px 4px rgba(255, 105, 0, 0.3));
+        }
+        
+        .nav-item:hover .nav-icon {
+            transform: scale(1.05);
         }
         
         .nav-label {
-            font-size: 10px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 600;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.3px;
+        }
+        
+        .nav-item.active .nav-label {
+            font-weight: 700;
+            color: #ff6900;
+        }
+        
+        .nav-item:hover .nav-label {
+            color: #ff6900;
+        }
+        
+        /* 语音按钮特殊样式 */
+        .nav-item[onmousedown] {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+        
+        .nav-item[onmousedown]::before {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+        }
+        
+        .nav-item[onmousedown]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        }
+        
+        .nav-item[onmousedown] .nav-icon {
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .nav-item[onmousedown] .nav-label {
+            color: white;
+            font-weight: 700;
+        }
+        
+        .nav-item[onmousedown]:hover .nav-icon {
+            transform: scale(1.1);
         }
         
         
@@ -725,7 +812,7 @@
         
         /* AI助手主界面 - 阿里巴巴风格 */
         .ai-assistant-main {
-            height: calc(100vh - 80px - 60px);
+            height: calc(100vh - 85px - 60px);
             display: flex;
             flex-direction: column;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -1002,16 +1089,18 @@
         /* 输入区域 - 固定在页签上方 */
         .input-area {
             position: fixed;
-            bottom: 80px;
+            bottom: 85px;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
             max-width: 414px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-top: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
             padding: 12px 20px;
             z-index: 99;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
         }
         
         .input-container {
