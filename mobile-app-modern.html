@@ -759,26 +759,90 @@
             font-size: 14px;
         }
         
-        /* 语音录入输入框 */
-        .voice-input-box {
-            background: var(--white);
+        /* AI语音助手对话框 */
+        .ai-assistant-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: var(--radius-xl);
             margin: 20px;
-            padding: 16px;
+            padding: 20px;
             box-shadow: var(--shadow-lg);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
         }
         
-        .voice-input-text {
-            background: var(--gray-50);
+        .ai-assistant-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .ai-assistant-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .ai-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .ai-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .ai-status {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-left: auto;
+        }
+        
+        .ai-conversation {
+            background: rgba(255,255,255,0.15);
             border-radius: var(--radius);
-            padding: 12px;
-            min-height: 60px;
+            padding: 16px;
+            min-height: 80px;
             font-size: 14px;
-            line-height: 1.5;
-            color: var(--gray-800);
-            margin-bottom: 12px;
-            border: 2px solid transparent;
-            transition: border-color 0.2s ease;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .ai-conversation.recording {
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.2);
+            animation: pulse-glow 1s infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 rgba(255,107,107,0.4); }
+            50% { box-shadow: 0 0 20px rgba(255,107,107,0.6); }
         }
         
         .voice-input-text.recording {
@@ -1247,9 +1311,22 @@
                 </div>
 
                 <!-- 语音录入输入框 -->
-                <div class="voice-input-box" id="voiceInputBox">
-                    <div class="voice-input-text" id="voiceInputText">
-                        按住语音按钮开始语音录入
+                <div class="ai-assistant-box" id="voiceInputBox">
+                    <div class="ai-assistant-header">
+                        <div class="ai-avatar">🤖</div>
+                        <div>
+                            <h3 class="ai-name">拾光豆AI助手</h3>
+                        </div>
+                        <div class="ai-status" id="aiStatus">在线</div>
+                    </div>
+                    
+                    <div class="ai-conversation" id="voiceInputText">
+                        <div class="ai-message" id="aiMessage">
+                            你好！我是拾光豆AI助手，可以帮你记录生活、设置提醒、回答问题。按住语音按钮开始对话吧！
+                        </div>
+                        <div class="user-message" id="userMessage" style="display: none;">
+                            <div class="user-text" id="userText"></div>
+                        </div>
                     </div>
                     
                     <div class="voice-status" id="voiceStatus">
@@ -1504,8 +1581,18 @@
                 
                 // 显示录音状态
                 document.getElementById('voiceInputText').classList.add('recording');
+                document.getElementById('aiStatus').textContent = '正在聆听...';
                 document.getElementById('voiceWave').style.display = 'flex';
                 document.getElementById('voiceStatusText').textContent = '正在录音...';
+                
+                // 更新AI助手状态
+                const aiMessage = document.getElementById('aiMessage');
+                const userMessage = document.getElementById('userMessage');
+                const userText = document.getElementById('userText');
+                
+                aiMessage.style.display = 'none';
+                userMessage.style.display = 'block';
+                userText.textContent = '';
                 
                 // 更新语音按钮状态
                 const voiceIcon = document.querySelector('.quick-icon-item[onmousedown="startVoiceRecording()"] .quick-icon');
@@ -1555,6 +1642,7 @@
             
             // 隐藏录音状态
             document.getElementById('voiceInputText').classList.remove('recording');
+            document.getElementById('aiStatus').textContent = '正在思考...';
             document.getElementById('voiceWave').style.display = 'none';
             document.getElementById('voiceStatusText').textContent = '正在保存...';
             
@@ -1592,9 +1680,9 @@
                     }
                     
                     // 实时显示识别结果
-                    const voiceInputText = document.getElementById('voiceInputText');
-                    if (voiceInputText) {
-                        voiceInputText.textContent = finalTranscript + interimTranscript;
+                    const userText = document.getElementById('userText');
+                    if (userText) {
+                        userText.textContent = finalTranscript + interimTranscript;
                         currentVoiceText = finalTranscript + interimTranscript;
                     }
                 };
@@ -1707,13 +1795,19 @@
             const voiceInputText = document.getElementById('voiceInputText');
             if (!voiceInputText || !currentVoiceText.trim()) return;
             
+            const content = currentVoiceText.trim();
+            
+            // 检测是否包含提醒相关内容
+            const reminderInfo = detectReminderContent(content);
+            
             // 创建新记录
             const newRecord = {
-                title: '语音记录',
-                content: currentVoiceText.trim(),
+                title: reminderInfo.isReminder ? '语音提醒' : '语音记录',
+                content: content,
                 timestamp: Date.now(),
                 location: currentLocation || '未知位置',
-                type: 'voice'
+                type: 'voice',
+                reminderInfo: reminderInfo
             };
             
             // 发送到后端保存
@@ -1728,14 +1822,27 @@
             .then(data => {
                 if (data.success) {
                     console.log('语音记录保存成功:', data.data);
-                    showToast('语音记录已保存');
+                    
+                    // 如果是提醒内容，创建提醒事项
+                    if (reminderInfo.isReminder) {
+                        createReminderFromVoice(reminderInfo, content);
+                        showToast('语音记录已保存，提醒事项已创建');
+                        generateAIResponse(content, 'reminder');
+                    } else {
+                        showToast('语音记录已保存');
+                        generateAIResponse(content, 'general');
+                    }
                     
                     // 清空输入框
-                    voiceInputText.textContent = '按住语音按钮开始语音录入';
+                    const userMessage = document.getElementById('userMessage');
+                    const aiMessage = document.getElementById('aiMessage');
+                    if (userMessage) userMessage.style.display = 'none';
+                    if (aiMessage) aiMessage.style.display = 'block';
                     currentVoiceText = '';
                     
                     // 更新状态文本
                     document.getElementById('voiceStatusText').textContent = '语音录入完成';
+                    document.getElementById('aiStatus').textContent = '在线';
                 } else {
                     console.error('保存失败:', data.error);
                     showToast('保存失败，请重试');
@@ -1745,6 +1852,320 @@
                 console.error('保存语音记录失败:', error);
                 showToast('保存失败，请重试');
             });
+        }
+        
+        // 检测语音内容中的提醒信息
+        function detectReminderContent(content) {
+            const reminderKeywords = [
+                '提醒我', '记得', '别忘了', '要记得', '记得要', '提醒', '闹钟', '定时',
+                '明天', '后天', '下周', '下个月', '今天', '今晚', '明天早上', '明天下午',
+                '点', '时', '分', '小时', '分钟', '天', '周', '月', '年'
+            ];
+            
+            const timePatterns = [
+                /(\d+)[点:](\d+)/,  // 14:30, 14点30
+                /(\d+)点/,          // 14点
+                /(\d+)时/,          // 14时
+                /(\d+)分/,          // 30分
+                /明天/,             // 明天
+                /后天/,             // 后天
+                /下周/,             // 下周
+                /下个月/,           // 下个月
+                /今天/,             // 今天
+                /今晚/,             // 今晚
+                /早上/,             // 早上
+                /下午/,             // 下午
+                /晚上/,             // 晚上
+                /(\d+)小时后/,      // 2小时后
+                /(\d+)分钟后/,      // 30分钟后
+                /(\d+)天后/         // 3天后
+            ];
+            
+            let isReminder = false;
+            let reminderTime = null;
+            let reminderTitle = '';
+            
+            // 检查是否包含提醒关键词
+            for (let keyword of reminderKeywords) {
+                if (content.includes(keyword)) {
+                    isReminder = true;
+                    break;
+                }
+            }
+            
+            if (isReminder) {
+                // 解析时间
+                for (let pattern of timePatterns) {
+                    const match = content.match(pattern);
+                    if (match) {
+                        reminderTime = parseTimeFromText(content, match);
+                        break;
+                    }
+                }
+                
+                // 提取提醒标题（去除时间相关词汇）
+                reminderTitle = extractReminderTitle(content);
+            }
+            
+            return {
+                isReminder: isReminder,
+                time: reminderTime,
+                title: reminderTitle,
+                originalContent: content
+            };
+        }
+        
+        // 从文本中解析时间
+        function parseTimeFromText(content, match) {
+            const now = new Date();
+            let targetTime = new Date(now);
+            
+            if (content.includes('明天')) {
+                targetTime.setDate(now.getDate() + 1);
+            } else if (content.includes('后天')) {
+                targetTime.setDate(now.getDate() + 2);
+            } else if (content.includes('下周')) {
+                targetTime.setDate(now.getDate() + 7);
+            } else if (content.includes('下个月')) {
+                targetTime.setMonth(now.getMonth() + 1);
+            }
+            
+            // 解析具体时间
+            const timeMatch = content.match(/(\d+)[点:](\d+)/);
+            if (timeMatch) {
+                targetTime.setHours(parseInt(timeMatch[1]));
+                targetTime.setMinutes(parseInt(timeMatch[2]));
+                targetTime.setSeconds(0);
+            } else {
+                const hourMatch = content.match(/(\d+)点/);
+                if (hourMatch) {
+                    targetTime.setHours(parseInt(hourMatch[1]));
+                    targetTime.setMinutes(0);
+                    targetTime.setSeconds(0);
+                }
+            }
+            
+            // 解析相对时间
+            const hourLaterMatch = content.match(/(\d+)小时后/);
+            if (hourLaterMatch) {
+                targetTime.setHours(now.getHours() + parseInt(hourLaterMatch[1]));
+            }
+            
+            const minuteLaterMatch = content.match(/(\d+)分钟后/);
+            if (minuteLaterMatch) {
+                targetTime.setMinutes(now.getMinutes() + parseInt(minuteLaterMatch[1]));
+            }
+            
+            return targetTime.getTime();
+        }
+        
+        // 提取提醒标题
+        function extractReminderTitle(content) {
+            // 移除时间相关词汇
+            let title = content
+                .replace(/提醒我|记得|别忘了|要记得|记得要|提醒|闹钟|定时/g, '')
+                .replace(/明天|后天|下周|下个月|今天|今晚|早上|下午|晚上/g, '')
+                .replace(/\d+[点:]\d+|\d+点|\d+时|\d+分|\d+小时后|\d+分钟后|\d+天后/g, '')
+                .replace(/[，。！？,\.!?]/g, '')
+                .trim();
+            
+            return title || '语音提醒';
+        }
+        
+        // 从语音内容创建提醒事项
+        function createReminderFromVoice(reminderInfo, content) {
+            const reminder = {
+                id: Date.now().toString(),
+                title: reminderInfo.title,
+                content: content,
+                time: reminderInfo.time || (Date.now() + 60 * 60 * 1000), // 默认1小时后
+                location: currentLocation || '未知位置',
+                type: 'voice_reminder',
+                created: Date.now(),
+                status: 'active'
+            };
+            
+            // 保存到本地存储
+            saveReminderToLocal(reminder);
+            
+            // 添加到系统日历（如果支持）
+            addToSystemCalendar(reminder);
+            
+            // 设置本地通知
+            scheduleLocalNotification(reminder);
+            
+            console.log('提醒事项已创建:', reminder);
+        }
+        
+        // 保存提醒到本地存储
+        function saveReminderToLocal(reminder) {
+            try {
+                let reminders = JSON.parse(localStorage.getItem('voiceReminders') || '[]');
+                reminders.push(reminder);
+                localStorage.setItem('voiceReminders', JSON.stringify(reminders));
+                console.log('提醒已保存到本地存储');
+            } catch (error) {
+                console.error('保存提醒到本地存储失败:', error);
+            }
+        }
+        
+        // 添加到系统日历
+        function addToSystemCalendar(reminder) {
+            if ('showSaveFilePicker' in window) {
+                // 创建ICS格式的日历文件
+                const icsContent = createICSContent(reminder);
+                downloadICSFile(icsContent, reminder.title);
+            }
+            
+            // 尝试使用Web Calendar API
+            if (navigator.calendar) {
+                navigator.calendar.createEvent({
+                    title: reminder.title,
+                    description: reminder.content,
+                    startTime: new Date(reminder.time),
+                    endTime: new Date(reminder.time + 30 * 60 * 1000), // 30分钟
+                    location: reminder.location
+                }).then(() => {
+                    console.log('提醒已添加到系统日历');
+                }).catch(error => {
+                    console.log('无法添加到系统日历:', error);
+                });
+            }
+        }
+        
+        // 创建ICS文件内容
+        function createICSContent(reminder) {
+            const startTime = new Date(reminder.time);
+            const endTime = new Date(reminder.time + 30 * 60 * 1000);
+            
+            return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ShinePod//Voice Reminder//EN
+BEGIN:VEVENT
+UID:${reminder.id}@shinepod.com
+DTSTAMP:${formatDateForICS(new Date())}
+DTSTART:${formatDateForICS(startTime)}
+DTEND:${formatDateForICS(endTime)}
+SUMMARY:${reminder.title}
+DESCRIPTION:${reminder.content}
+LOCATION:${reminder.location}
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+        }
+        
+        // 格式化日期为ICS格式
+        function formatDateForICS(date) {
+            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        }
+        
+        // 下载ICS文件
+        function downloadICSFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log('ICS文件已下载');
+        }
+        
+        // 设置本地通知
+        function scheduleLocalNotification(reminder) {
+            if ('Notification' in window && 'serviceWorker' in navigator) {
+                // 请求通知权限
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        const notificationTime = reminder.time - Date.now();
+                        if (notificationTime > 0) {
+                            setTimeout(() => {
+                                new Notification(reminder.title, {
+                                    body: reminder.content,
+                                    icon: '/favicon.ico',
+                                    tag: reminder.id
+                                });
+                            }, notificationTime);
+                            console.log('本地通知已设置');
+                        }
+                    }
+                });
+            }
+            
+            // 使用Web Notifications API
+            if ('Notification' in window) {
+                const notificationTime = reminder.time - Date.now();
+                if (notificationTime > 0) {
+                    setTimeout(() => {
+                        if (Notification.permission === 'granted') {
+                            new Notification(reminder.title, {
+                                body: reminder.content,
+                                icon: '/favicon.ico',
+                                tag: reminder.id
+                            });
+                        }
+                    }, notificationTime);
+                }
+            }
+        }
+        
+        // AI回复生成
+        function generateAIResponse(userInput, type) {
+            const aiMessage = document.getElementById('aiMessage');
+            if (!aiMessage) return;
+            
+            let response = '';
+            
+            if (type === 'reminder') {
+                const responses = [
+                    `好的，我已经为你设置了提醒！${userInput.includes('明天') ? '明天' : userInput.includes('后天') ? '后天' : '稍后'}我会准时提醒你的。`,
+                    `提醒已设置完成！我会在${userInput.includes('点') ? '指定时间' : '合适时间'}提醒你的。`,
+                    `收到！我已经记录下你的提醒事项，到时候会准时通知你的。`,
+                    `好的，提醒事项已创建！我会帮你记住这个重要的事情。`
+                ];
+                response = responses[Math.floor(Math.random() * responses.length)];
+            } else {
+                // 根据内容生成智能回复
+                if (userInput.includes('天气')) {
+                    response = '今天天气确实不错！记得多出去走走，享受美好的阳光。';
+                } else if (userInput.includes('工作') || userInput.includes('学习')) {
+                    response = '听起来你很有干劲！继续保持这种积极的状态，相信你一定能取得好成绩。';
+                } else if (userInput.includes('心情') || userInput.includes('感觉')) {
+                    response = '感谢你与我分享你的感受。保持积极的心态，每一天都是新的开始！';
+                } else if (userInput.includes('朋友') || userInput.includes('家人')) {
+                    response = '与朋友和家人在一起的时光总是最珍贵的。珍惜这些美好的时刻！';
+                } else if (userInput.includes('计划') || userInput.includes('安排')) {
+                    response = '有计划的生活更有条理！我会帮你记录这些重要安排。';
+                } else {
+                    const generalResponses = [
+                        '感谢你与我分享！我已经记录下这些内容。',
+                        '很有意思的想法！我会帮你保存这些记录。',
+                        '好的，我已经记录下来了。还有什么想告诉我的吗？',
+                        '收到！这些内容已经保存到你的记录中了。',
+                        '感谢分享！我会帮你整理这些信息。'
+                    ];
+                    response = generalResponses[Math.floor(Math.random() * generalResponses.length)];
+                }
+            }
+            
+            // 打字机效果显示AI回复
+            typewriterEffect(aiMessage, response);
+        }
+        
+        // 打字机效果
+        function typewriterEffect(element, text) {
+            element.textContent = '';
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 50);
         }
         
         function simulateVoiceToText(duration) {
