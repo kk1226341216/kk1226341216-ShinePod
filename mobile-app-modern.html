@@ -1507,6 +1507,12 @@
                 </div>
                 <div class="quick-icon-label">记录</div>
             </div>
+            <div class="quick-icon-item" onclick="toggleVoiceRecording()">
+                <div class="quick-icon" style="background: #FF6B6B;">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="quick-icon-label">语音</div>
+            </div>
             <div class="quick-icon-item" onclick="switchPage('stats')">
                 <div class="quick-icon" style="background: var(--info);">
                     <i class="fas fa-chart-bar"></i>
@@ -1564,6 +1570,14 @@
         };
         
         // 语音录入功能
+        function toggleVoiceRecording() {
+            if (isRecording) {
+                stopVoiceRecording();
+            } else {
+                startVoiceRecording();
+            }
+        }
+        
         function startVoiceRecording() {
             if (isRecording) return;
             
@@ -1575,6 +1589,13 @@
             document.getElementById('voiceInputText').classList.add('recording');
             document.getElementById('voiceWave').style.display = 'flex';
             document.getElementById('voiceStatusText').textContent = '正在录音...';
+            
+            // 更新语音按钮状态
+            const voiceIcon = document.querySelector('.quick-icon-item[onclick="toggleVoiceRecording()"] .quick-icon');
+            if (voiceIcon) {
+                voiceIcon.style.background = '#FF4444';
+                voiceIcon.innerHTML = '<i class="fas fa-stop"></i>';
+            }
             
             // 获取位置信息
             getCurrentLocation();
@@ -1594,6 +1615,13 @@
             document.getElementById('voiceInputText').classList.remove('recording');
             document.getElementById('voiceWave').style.display = 'none';
             document.getElementById('voiceStatusText').textContent = '正在转换文字...';
+            
+            // 恢复语音按钮状态
+            const voiceIcon = document.querySelector('.quick-icon-item[onclick="toggleVoiceRecording()"] .quick-icon');
+            if (voiceIcon) {
+                voiceIcon.style.background = '#FF6B6B';
+                voiceIcon.innerHTML = '<i class="fas fa-microphone"></i>';
+            }
             
             // 模拟语音转文字
             setTimeout(() => {
