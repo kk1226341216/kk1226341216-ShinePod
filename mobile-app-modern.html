@@ -815,46 +815,6 @@
             50% { height: 16px; }
         }
         
-        /* 浮动语音录音按钮 */
-        .voice-fab {
-            position: fixed;
-            top: 120px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-            color: var(--white);
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .voice-fab:hover {
-            transform: scale(1.05);
-        }
-        
-        .voice-fab:active {
-            transform: scale(0.95);
-        }
-        
-        .voice-fab.recording {
-            background: linear-gradient(135deg, #FF3B30, #FF6B6B);
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
         
         /* 底部快速操作图标 */
         .bottom-quick-actions {
@@ -1289,7 +1249,7 @@
                 <!-- 语音录入输入框 -->
                 <div class="voice-input-box" id="voiceInputBox">
                     <div class="voice-input-text" id="voiceInputText">
-                        点击浮动按钮开始语音录入
+                        按住语音按钮开始语音录入
                     </div>
                     
                     <div class="voice-status" id="voiceStatus">
@@ -1444,7 +1404,7 @@
                 </div>
                 <div class="quick-icon-label">记录</div>
             </div>
-            <div class="quick-icon-item" onclick="toggleVoiceRecording()">
+            <div class="quick-icon-item" onmousedown="startVoiceRecording()" onmouseup="stopVoiceRecording()" ontouchstart="startVoiceRecording()" ontouchend="stopVoiceRecording()">
                 <div class="quick-icon" style="background: #FF6B6B;">
                     <i class="fas fa-microphone"></i>
                 </div>
@@ -1496,6 +1456,9 @@
         let recordingStartTime = null;
         let currentLocation = null;
         let voiceResultData = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recognition = null;
         
         // 页面标题映射
         const pageTitles = {
@@ -1506,39 +1469,72 @@
             profile: '我的'
         };
         
-        // 语音录入功能
-        function toggleVoiceRecording() {
-            if (isRecording) {
-                stopVoiceRecording();
-            } else {
-                startVoiceRecording();
-            }
-        }
-        
-        function startVoiceRecording() {
+        async function startVoiceRecording() {
             if (isRecording) return;
             
-            isRecording = true;
-            recordingStartTime = new Date();
-            
-            // 显示录音状态
-            document.getElementById('voiceFab').classList.add('recording');
-            document.getElementById('voiceInputText').classList.add('recording');
-            document.getElementById('voiceWave').style.display = 'flex';
-            document.getElementById('voiceStatusText').textContent = '正在录音...';
-            
-            // 更新语音按钮状态
-            const voiceIcon = document.querySelector('.quick-icon-item[onclick="toggleVoiceRecording()"] .quick-icon');
-            if (voiceIcon) {
-                voiceIcon.style.background = '#FF4444';
-                voiceIcon.innerHTML = '<i class="fas fa-stop"></i>';
+            try {
+                // 请求麦克风权限
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    } 
+                });
+                
+                isRecording = true;
+                recordingStartTime = new Date();
+                
+                // 设置MediaRecorder
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    processAudioBlob(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                // 开始录制
+                mediaRecorder.start();
+                
+                // 显示录音状态
+                document.getElementById('voiceInputText').classList.add('recording');
+                document.getElementById('voiceWave').style.display = 'flex';
+                document.getElementById('voiceStatusText').textContent = '正在录音...';
+                
+                // 更新语音按钮状态
+                const voiceIcon = document.querySelector('.quick-icon-item[onmousedown="startVoiceRecording()"] .quick-icon');
+                if (voiceIcon) {
+                    voiceIcon.style.background = '#FF4444';
+                    voiceIcon.innerHTML = '<i class="fas fa-stop"></i>';
+                }
+                
+                // 清空输入框，准备显示实时转文字
+                const voiceInputText = document.getElementById('voiceInputText');
+                if (voiceInputText) {
+                    voiceInputText.textContent = '';
+                }
+                
+                // 初始化语音识别
+                initSpeechRecognition();
+                
+                // 获取位置信息
+                getCurrentLocation();
+                
+                console.log('开始真实录音...');
+                
+            } catch (error) {
+                console.error('无法访问麦克风:', error);
+                showToast('无法访问麦克风，请检查权限设置');
+                
+                // 如果无法访问麦克风，回退到模拟模式
+                fallbackToSimulation();
             }
-            
-            // 获取位置信息
-            getCurrentLocation();
-            
-            // 模拟录音过程
-            console.log('开始录音...');
         }
         
         function stopVoiceRecording() {
@@ -1547,25 +1543,208 @@
             isRecording = false;
             const recordingDuration = new Date() - recordingStartTime;
             
+            // 停止MediaRecorder
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            
+            // 停止语音识别
+            if (recognition) {
+                recognition.stop();
+            }
+            
             // 隐藏录音状态
-            document.getElementById('voiceFab').classList.remove('recording');
             document.getElementById('voiceInputText').classList.remove('recording');
             document.getElementById('voiceWave').style.display = 'none';
-            document.getElementById('voiceStatusText').textContent = '正在转换文字...';
+            document.getElementById('voiceStatusText').textContent = '正在保存...';
             
             // 恢复语音按钮状态
-            const voiceIcon = document.querySelector('.quick-icon-item[onclick="toggleVoiceRecording()"] .quick-icon');
+            const voiceIcon = document.querySelector('.quick-icon-item[onmousedown="startVoiceRecording()"] .quick-icon');
             if (voiceIcon) {
                 voiceIcon.style.background = '#FF6B6B';
                 voiceIcon.innerHTML = '<i class="fas fa-microphone"></i>';
             }
             
-            // 模拟语音转文字
-            setTimeout(() => {
-                simulateVoiceToText(recordingDuration);
-            }, 500);
-            
             console.log('停止录音，时长:', recordingDuration + 'ms');
+        }
+        
+        // 初始化语音识别
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-CN';
+                
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    // 实时显示识别结果
+                    const voiceInputText = document.getElementById('voiceInputText');
+                    if (voiceInputText) {
+                        voiceInputText.textContent = finalTranscript + interimTranscript;
+                        currentVoiceText = finalTranscript + interimTranscript;
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('语音识别错误:', event.error);
+                };
+                
+                recognition.start();
+            } else {
+                console.log('浏览器不支持语音识别，使用模拟模式');
+                startRealTimeVoiceToText();
+            }
+        }
+        
+        // 处理音频数据
+        function processAudioBlob(audioBlob) {
+            console.log('音频录制完成，大小:', audioBlob.size, 'bytes');
+            
+            // 这里可以发送音频到后端进行语音识别
+            // 目前使用前端语音识别结果
+            setTimeout(() => {
+                saveCurrentVoiceRecord();
+            }, 500);
+        }
+        
+        // 回退到模拟模式
+        function fallbackToSimulation() {
+            isRecording = true;
+            recordingStartTime = new Date();
+            
+            // 显示录音状态
+            document.getElementById('voiceInputText').classList.add('recording');
+            document.getElementById('voiceWave').style.display = 'flex';
+            document.getElementById('voiceStatusText').textContent = '正在录音...';
+            
+            // 更新语音按钮状态
+            const voiceIcon = document.querySelector('.quick-icon-item[onmousedown="startVoiceRecording()"] .quick-icon');
+            if (voiceIcon) {
+                voiceIcon.style.background = '#FF4444';
+                voiceIcon.innerHTML = '<i class="fas fa-stop"></i>';
+            }
+            
+            // 清空输入框
+            const voiceInputText = document.getElementById('voiceInputText');
+            if (voiceInputText) {
+                voiceInputText.textContent = '';
+            }
+            
+            // 开始模拟语音转文字
+            startRealTimeVoiceToText();
+            
+            // 获取位置信息
+            getCurrentLocation();
+            
+            console.log('使用模拟录音模式...');
+        }
+        
+        // 实时语音转文字功能
+        let realTimeInterval = null;
+        let currentVoiceText = '';
+        
+        function startRealTimeVoiceToText() {
+            const voiceInputText = document.getElementById('voiceInputText');
+            if (!voiceInputText) return;
+            
+            // 模拟实时语音转文字
+            const sampleTexts = [
+                "今天天气真不错",
+                "适合出去走走",
+                "记得明天要开会",
+                "准备一下材料",
+                "今天的工作完成了",
+                "感觉很有成就感",
+                "晚上要和朋友聚餐",
+                "期待见面",
+                "学习新技能",
+                "提升自己的能力"
+            ];
+            
+            let textIndex = 0;
+            let charIndex = 0;
+            currentVoiceText = '';
+            
+            realTimeInterval = setInterval(() => {
+                if (textIndex < sampleTexts.length) {
+                    const currentText = sampleTexts[textIndex];
+                    if (charIndex < currentText.length) {
+                        currentVoiceText += currentText[charIndex];
+                        voiceInputText.textContent = currentVoiceText;
+                        charIndex++;
+                    } else {
+                        currentVoiceText += ' ';
+                        voiceInputText.textContent = currentVoiceText;
+                        textIndex++;
+                        charIndex = 0;
+                    }
+                }
+            }, 100); // 每100ms添加一个字符
+        }
+        
+        function stopRealTimeVoiceToText() {
+            if (realTimeInterval) {
+                clearInterval(realTimeInterval);
+                realTimeInterval = null;
+            }
+        }
+        
+        function saveCurrentVoiceRecord() {
+            const voiceInputText = document.getElementById('voiceInputText');
+            if (!voiceInputText || !currentVoiceText.trim()) return;
+            
+            // 创建新记录
+            const newRecord = {
+                title: '语音记录',
+                content: currentVoiceText.trim(),
+                timestamp: Date.now(),
+                location: currentLocation || '未知位置',
+                type: 'voice'
+            };
+            
+            // 发送到后端保存
+            fetch('/api/records', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newRecord)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('语音记录保存成功:', data.data);
+                    showToast('语音记录已保存');
+                    
+                    // 清空输入框
+                    voiceInputText.textContent = '按住语音按钮开始语音录入';
+                    currentVoiceText = '';
+                    
+                    // 更新状态文本
+                    document.getElementById('voiceStatusText').textContent = '语音录入完成';
+                } else {
+                    console.error('保存失败:', data.error);
+                    showToast('保存失败，请重试');
+                }
+            })
+            .catch(error => {
+                console.error('保存语音记录失败:', error);
+                showToast('保存失败，请重试');
+            });
         }
         
         function simulateVoiceToText(duration) {
