@@ -5,7 +5,14 @@
   "main": "server/app.js",
   "scripts": {
     "start": "node server/app.js",
-    "dev": "nodemon server/app.js"
+    "dev": "nodemon server/app.js",
+    "check-config": "node check-config.js",
+    "init-db": "node init-database.js",
+    "test": "node test-api.js",
+    "test-api": "node test-api.js",
+    "prepare-deployment": "node prepare-deployment.js",
+    "lint": "echo \"Linting not configured\"",
+    "setup": "npm install && node init-database.js"
   },
   "dependencies": {
     "express": "^4.18.2",
