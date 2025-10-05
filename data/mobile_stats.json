@@ -1,0 +1,47 @@
+{
+  "totalMessages": 0,
+  "totalRecords": 0,
+  "totalReminders": 0,
+  "weeklyActivity": [
+    {
+      "day": 0,
+      "messages": 0,
+      "records": 0
+    },
+    {
+      "day": 1,
+      "messages": 0,
+      "records": 0
+    },
+    {
+      "day": 2,
+      "messages": 0,
+      "records": 0
+    },
+    {
+      "day": 3,
+      "messages": 0,
+      "records": 0
+    },
+    {
+      "day": 4,
+      "messages": 0,
+      "records": 0
+    },
+    {
+      "day": 5,
+      "messages": 0,
+      "records": 0
+    },
+    {
+      "day": 6,
+      "messages": 0,
+      "records": 0
+    }
+  ],
+  "monthlyStats": {
+    "messages": 0,
+    "records": 0,
+    "reminders": 0
+  }
+}

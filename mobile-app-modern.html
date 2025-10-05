@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拾光豆 - 智能语音助手</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #007AFF;
+            --primary-dark: #0056CC;
+            --primary-light: #E3F2FD;
+            --secondary: #8E8E93;
+            --success: #34C759;
+            --warning: #FF9500;
+            --danger: #FF3B30;
+            --info: #5AC8FA;
+            --gray-50: #F2F2F7;
+            --gray-100: #E5E5EA;
+            --gray-200: #D1D1D6;
+            --gray-300: #C7C7CC;
+            --gray-400: #AEAEB2;
+            --gray-500: #8E8E93;
+            --gray-600: #6D6D70;
+            --gray-700: #48484A;
+            --gray-800: #3A3A3C;
+            --gray-900: #1C1C1E;
+            --white: #FFFFFF;
+            --black: #000000;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.2);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            max-width: 414px;
+            margin: 0 auto;
+            background: var(--white);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* 顶部状态栏 */
+        .status-bar {
+            height: 44px;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-900);
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* 顶部导航栏 */
+        .header {
+            height: 60px;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--gray-100);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .header-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gray-100);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .header-btn:hover {
+            background: var(--gray-200);
+            transform: scale(1.05);
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        /* 页面容器 */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 首页样式 */
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 32px;
+            color: var(--white);
+            box-shadow: var(--shadow);
+        }
+        
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+        
+        .welcome-subtitle {
+            font-size: 16px;
+            color: var(--gray-600);
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .quick-action {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quick-action:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .quick-action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 20px;
+            color: var(--white);
+        }
+        
+        .quick-action-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        
+        .quick-action-desc {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+        
+        /* 记录页面样式 */
+        .record-item {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+        }
+        
+        .record-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .record-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .record-time {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        
+        .record-content {
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+        
+        /* 统计页面样式 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+        
+        .chart-container {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+        }
+        
+        /* 提醒页面样式 */
+        .reminder-item {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            position: relative;
+        }
+        
+        .reminder-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .reminder-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .reminder-time {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        
+        .reminder-content {
+            font-size: 14px;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+        
+        .reminder-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .reminder-status.active {
+            background: var(--success);
+            color: var(--white);
+        }
+        
+        .reminder-status.completed {
+            background: var(--gray-200);
+            color: var(--gray-600);
+        }
+        
+        /* 我的页面样式 */
+        .profile-section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 32px;
+            color: var(--white);
+        }
+        
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        
+        .profile-email {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+        
+        .menu-section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            overflow: hidden;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-item:hover {
+            background: var(--gray-50);
+        }
+        
+        .menu-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 16px;
+            color: var(--white);
+        }
+        
+        .menu-content {
+            flex: 1;
+        }
+        
+        .menu-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--gray-900);
+            margin-bottom: 2px;
+        }
+        
+        .menu-desc {
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+        
+        .menu-arrow {
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+        
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            height: 80px;
+            background: var(--white);
+            border-top: 1px solid var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 8px;
+            border-radius: var(--radius);
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--gray-500);
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+        }
+        
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* 语音录入浮动按钮 */
+        .voice-fab {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            color: var(--white);
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 确保在app容器内 */
+            max-width: calc(100vw - 40px);
+            max-height: calc(100vh - 40px);
+        }
+        
+        .voice-fab:hover {
+            transform: scale(1.05);
+        }
+        
+        .voice-fab:active {
+            transform: scale(0.95);
+        }
+        
+        .voice-fab.recording {
+            background: linear-gradient(135deg, #FF3B30, #FF6B6B);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 语音录入状态指示器 */
+        .voice-indicator {
+            position: fixed;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .voice-indicator.show {
+            display: flex;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        .voice-wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .voice-bar {
+            width: 3px;
+            height: 12px;
+            background: var(--white);
+            border-radius: 2px;
+            animation: wave 1s infinite ease-in-out;
+        }
+        
+        .voice-bar:nth-child(2) { animation-delay: 0.1s; }
+        .voice-bar:nth-child(3) { animation-delay: 0.2s; }
+        .voice-bar:nth-child(4) { animation-delay: 0.3s; }
+        .voice-bar:nth-child(5) { animation-delay: 0.4s; }
+        
+        @keyframes wave {
+            0%, 100% { height: 12px; }
+            50% { height: 20px; }
+        }
+        
+        /* 语音录入结果弹窗 */
+        .voice-result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .voice-result-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .voice-result-content {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            margin: 20px;
+            max-width: 350px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .voice-result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .voice-result-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 18px;
+        }
+        
+        .voice-result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .voice-result-text {
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--gray-800);
+            min-height: 60px;
+        }
+        
+        .voice-result-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .voice-result-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+        
+        .voice-result-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .voice-result-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .voice-result-btn.primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .voice-result-btn.secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+        
+        .voice-result-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* 位置获取指示器 */
+        .location-indicator {
+            position: fixed;
+            bottom: 200px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--white);
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .location-indicator.show {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 浮动操作按钮 */
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s ease;
+            z-index: 99;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 375px) {
+            .app-container {
+                max-width: 375px;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+            
+            .quick-actions {
+                gap: 12px;
+            }
+            
+            .stats-grid {
+                gap: 12px;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-500);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+        }
+        
+        /* 语音录入输入框 */
+        .voice-input-box {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            margin: 20px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .voice-input-text {
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            padding: 12px;
+            min-height: 60px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--gray-800);
+            margin-bottom: 12px;
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+        
+        .voice-input-text.recording {
+            border-color: #FF6B6B;
+        }
+        
+        .voice-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+        
+        .voice-wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .voice-bar {
+            width: 2px;
+            height: 8px;
+            background: #FF6B6B;
+            border-radius: 1px;
+            animation: wave 1s infinite ease-in-out;
+        }
+        
+        .voice-bar:nth-child(2) { animation-delay: 0.1s; }
+        .voice-bar:nth-child(3) { animation-delay: 0.2s; }
+        
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 16px; }
+        }
+        
+        /* 浮动语音录音按钮 */
+        .voice-fab {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            color: var(--white);
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .voice-fab:hover {
+            transform: scale(1.05);
+        }
+        
+        .voice-fab:active {
+            transform: scale(0.95);
+        }
+        
+        .voice-fab.recording {
+            background: linear-gradient(135deg, #FF3B30, #FF6B6B);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 底部快速操作图标 */
+        .bottom-quick-actions {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .quick-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-icon-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .quick-icon-item:active {
+            transform: translateY(0);
+        }
+        
+        .quick-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: var(--white);
+            font-size: 16px;
+            margin-bottom: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .quick-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .quick-icon:active {
+            transform: scale(0.95);
+        }
+        
+        .quick-icon-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+        
+        .quick-icon-item:hover .quick-icon-label {
+            color: var(--gray-800);
+        }
+        
+        /* 搜索栏样式 */
+        .search-bar {
+            background: var(--white);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .search-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--gray-400);
+            font-size: 16px;
+            z-index: 1;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            font-size: 16px;
+            background: var(--gray-50);
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+        
+        .search-clear {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .search-clear:hover {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+        
+        /* 最新记录显示区域样式 */
+        .latest-records {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .latest-records-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+        
+        .latest-records-content {
+            max-height: 120px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-300) transparent;
+        }
+        
+        .latest-records-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .latest-records-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .latest-records-content::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 2px;
+        }
+        
+        .latest-records-content::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+        
+        .latest-record-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .latest-record-item:last-child {
+            border-bottom: none;
+        }
+        
+        .record-time {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-right: 12px;
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+        
+        .record-text {
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        
+        /* 记录页面样式 */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin: 0;
+        }
+        
+        .page-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn:hover {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+        
+        .action-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .records-container {
+            padding: 20px;
+        }
+        
+        .date-section {
+            margin-bottom: 24px;
+        }
+        
+        .date-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .date-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 0;
+        }
+        
+        .date-count {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-left: 8px;
+        }
+        
+        .record-item {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .record-item:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .record-item.selected {
+            border-color: var(--primary);
+            background: rgba(0, 122, 255, 0.05);
+        }
+        
+        .record-checkbox {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid var(--gray-300);
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .record-checkbox.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .record-checkbox.checked::after {
+            content: '✓';
+            color: var(--white);
+            font-size: 12px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .record-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+            flex: 1;
+            margin-right: 40px;
+        }
+        
+        .record-time {
+            font-size: 12px;
+            color: var(--gray-500);
+            white-space: nowrap;
+        }
+        
+        .record-content {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        
+        .record-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .record-item:hover .record-actions {
+            opacity: 1;
+        }
+        
+        .record-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-btn {
+            background: var(--warning);
+            color: var(--white);
+        }
+        
+        .edit-btn:hover {
+            background: #e67e22;
+        }
+        
+        .delete-btn {
+            background: var(--danger);
+            color: var(--white);
+        }
+        
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+        
+        .batch-mode {
+            background: rgba(0, 122, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span>9:41</span>
+            </div>
+            <div class="status-right">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-three-quarters"></i>
+            </div>
+        </div>
+
+        <!-- 顶部导航栏 -->
+        <div class="header">
+            <div class="header-title" id="pageTitle">首页</div>
+        </div>
+        
+        <!-- 记录页面搜索栏 -->
+        <div class="search-bar" id="searchBar" style="display: none;">
+            <div class="search-input-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索记录..." onkeyup="searchRecords(this.value)">
+                <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 首页 -->
+            <div class="page active" id="homePage">
+                <div class="welcome-section">
+                    <div class="welcome-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h1 class="welcome-title">拾光豆</h1>
+                    <p class="welcome-subtitle">智能语音助手，记录美好时光</p>
+                </div>
+
+                <!-- 语音录入输入框 -->
+                <div class="voice-input-box" id="voiceInputBox">
+                    <div class="voice-input-text" id="voiceInputText">
+                        点击浮动按钮开始语音录入
+                    </div>
+                    
+                    <div class="voice-status" id="voiceStatus">
+                        <div class="voice-wave" id="voiceWave" style="display: none;">
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                        </div>
+                        <span id="voiceStatusText">准备就绪</span>
+                    </div>
+                    
+                    <!-- 最新记录显示区域 -->
+                    <div class="latest-records" id="latestRecords">
+                        <div class="latest-records-title">最新记录</div>
+                        <div class="latest-records-content" id="latestRecordsContent">
+                            <div class="latest-record-item">
+                                <span class="record-time">刚刚</span>
+                                <span class="record-text">今天天气很好，心情也不错</span>
+                            </div>
+                            <div class="latest-record-item">
+                                <span class="record-time">2分钟前</span>
+                                <span class="record-text">完成了项目的重要功能开发</span>
+                            </div>
+                            <div class="latest-record-item">
+                                <span class="record-time">5分钟前</span>
+                                <span class="record-text">和朋友一起吃了美味的午餐</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 记录页面 -->
+            <div class="page" id="recordsPage">
+                <div class="page-header">
+                    <h2 class="page-title">记录</h2>
+                    <div class="page-actions">
+                        <button class="action-btn" id="batchSelectBtn" onclick="toggleBatchMode()">
+                            <i class="fas fa-check-square"></i>
+                        </button>
+                        <button class="action-btn" id="batchDeleteBtn" onclick="batchDeleteRecords()" style="display: none;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="records-container">
+                    <div class="records-list" id="recordsList">
+                        <!-- 记录列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计页面 -->
+            <div class="page" id="statsPage">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalRecords">0</div>
+                        <div class="stat-label">总记录数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalReminders">0</div>
+                        <div class="stat-label">提醒事项</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="weeklyActivity">0</div>
+                        <div class="stat-label">本周活跃</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="monthlyRecords">0</div>
+                        <div class="stat-label">本月记录</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">本周活动趋势</div>
+                    <div id="activityChart" style="height: 200px; background: var(--gray-50); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--gray-500);">
+                        图表加载中...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 提醒页面 -->
+            <div class="page" id="remindersPage">
+                <div id="remindersList">
+                    <!-- 提醒列表将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 我的页面 -->
+            <div class="page" id="profilePage">
+                <div class="profile-section">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h2 class="profile-name">用户</h2>
+                    <p class="profile-email">user@example.com</p>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-item" onclick="showSettings()">
+                        <div class="menu-icon" style="background: var(--primary);">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="menu-content">
+                            <div class="menu-title">设置</div>
+                            <div class="menu-desc">个性化设置</div>
+                        </div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
+                    </div>
+
+                    <div class="menu-item" onclick="showAbout()">
+                        <div class="menu-icon" style="background: var(--info);">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="menu-content">
+                            <div class="menu-title">关于</div>
+                            <div class="menu-desc">版本信息</div>
+                        </div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
+                    </div>
+
+                    <div class="menu-item" onclick="showHelp()">
+                        <div class="menu-icon" style="background: var(--success);">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="menu-content">
+                            <div class="menu-title">帮助</div>
+                            <div class="menu-desc">使用指南</div>
+                        </div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 浮动语音录音按钮 -->
+        <button class="voice-fab" id="voiceFab" onmousedown="startVoiceRecording()" onmouseup="stopVoiceRecording()" ontouchstart="startVoiceRecording()" ontouchend="stopVoiceRecording()">
+            🐼
+        </button>
+
+        <!-- 浮动操作按钮 -->
+        <button class="fab" onclick="showAddModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- 底部快速操作图标 -->
+        <div class="bottom-quick-actions" id="bottomQuickActions">
+            <div class="quick-icon-item" onclick="showRecordModal()">
+                <div class="quick-icon" style="background: var(--primary);">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="quick-icon-label">新建</div>
+            </div>
+            <div class="quick-icon-item" onclick="switchPage('records')">
+                <div class="quick-icon" style="background: var(--success);">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="quick-icon-label">记录</div>
+            </div>
+            <div class="quick-icon-item" onclick="switchPage('stats')">
+                <div class="quick-icon" style="background: var(--info);">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="quick-icon-label">统计</div>
+            </div>
+            <div class="quick-icon-item" onclick="showReminderModal()">
+                <div class="quick-icon" style="background: var(--warning);">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="quick-icon-label">提醒</div>
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchPage('home')">
+                <i class="nav-icon fas fa-home"></i>
+                <span class="nav-label">首页</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('records')">
+                <i class="nav-icon fas fa-book"></i>
+                <span class="nav-label">记录</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('stats')">
+                <i class="nav-icon fas fa-chart-bar"></i>
+                <span class="nav-label">统计</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('reminders')">
+                <i class="nav-icon fas fa-bell"></i>
+                <span class="nav-label">提醒</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('profile')">
+                <i class="nav-icon fas fa-user"></i>
+                <span class="nav-label">我的</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentPage = 'home';
+        let isRecording = false;
+        let recordingStartTime = null;
+        let currentLocation = null;
+        let voiceResultData = null;
+        
+        // 页面标题映射
+        const pageTitles = {
+            home: '首页',
+            records: '记录',
+            stats: '统计',
+            reminders: '提醒',
+            profile: '我的'
+        };
+        
+        // 语音录入功能
+        function startVoiceRecording() {
+            if (isRecording) return;
+            
+            isRecording = true;
+            recordingStartTime = new Date();
+            
+            // 显示录音状态
+            document.getElementById('voiceFab').classList.add('recording');
+            document.getElementById('voiceInputText').classList.add('recording');
+            document.getElementById('voiceWave').style.display = 'flex';
+            document.getElementById('voiceStatusText').textContent = '正在录音...';
+            
+            // 获取位置信息
+            getCurrentLocation();
+            
+            // 模拟录音过程
+            console.log('开始录音...');
+        }
+        
+        function stopVoiceRecording() {
+            if (!isRecording) return;
+            
+            isRecording = false;
+            const recordingDuration = new Date() - recordingStartTime;
+            
+            // 隐藏录音状态
+            document.getElementById('voiceFab').classList.remove('recording');
+            document.getElementById('voiceInputText').classList.remove('recording');
+            document.getElementById('voiceWave').style.display = 'none';
+            document.getElementById('voiceStatusText').textContent = '正在转换文字...';
+            
+            // 模拟语音转文字
+            setTimeout(() => {
+                simulateVoiceToText(recordingDuration);
+            }, 500);
+            
+            console.log('停止录音，时长:', recordingDuration + 'ms');
+        }
+        
+        function simulateVoiceToText(duration) {
+            // 模拟语音转文字过程
+            const sampleTexts = [
+                "今天天气真不错，适合出去走走",
+                "记得明天要开会，准备一下材料",
+                "今天的工作完成了，感觉很有成就感",
+                "晚上要和朋友聚餐，期待见面",
+                "学习新技能，提升自己的能力",
+                "今天心情很好，记录一下美好时光",
+                "计划周末去爬山，锻炼身体",
+                "读了一本好书，收获很多",
+                "今天遇到了有趣的事情",
+                "感谢身边的朋友和家人"
+            ];
+            
+            const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+            
+            // 显示在输入框中
+            document.getElementById('voiceInputText').textContent = randomText;
+            document.getElementById('voiceStatusText').textContent = '转换完成';
+            
+            // 自动保存记录
+            setTimeout(() => {
+                saveVoiceRecord(randomText);
+            }, 1000);
+        }
+        
+        function saveVoiceRecord(text) {
+            // 发送到服务器
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'add_record',
+                    data: {
+                        title: '语音记录',
+                        content: text,
+                        type: 'voice',
+                        location: currentLocation,
+                        timestamp: new Date()
+                    }
+                }));
+            }
+            
+            // 显示成功提示
+            showToast('语音记录已自动保存！');
+            
+            // 如果当前在记录页面，刷新列表
+            if (currentPage === 'records') {
+                loadRecords();
+            }
+        }
+        
+        function showVoiceResult(text) {
+            voiceResultData = {
+                text: text,
+                timestamp: new Date(),
+                location: currentLocation,
+                duration: new Date() - recordingStartTime
+            };
+            
+            // 更新弹窗内容
+            document.getElementById('voiceResultText').textContent = text;
+            document.getElementById('voiceResultTime').textContent = voiceResultData.timestamp.toLocaleString();
+            document.getElementById('voiceResultLocation').textContent = currentLocation || '位置获取失败';
+            
+            // 显示弹窗
+            const modal = document.getElementById('voiceResultModal');
+            modal.classList.add('show');
+            
+            // 确保弹窗可见
+            setTimeout(() => {
+                modal.style.display = 'flex';
+            }, 10);
+        }
+        
+        function saveVoiceResult() {
+            if (!voiceResultData) return;
+            
+            // 发送到服务器
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'add_record',
+                    data: {
+                        title: '语音记录',
+                        content: voiceResultData.text,
+                        type: 'voice',
+                        location: voiceResultData.location,
+                        duration: voiceResultData.duration
+                    }
+                }));
+            }
+            
+            // 关闭弹窗
+            const modal = document.getElementById('voiceResultModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            
+            // 显示成功提示
+            showToast('语音记录保存成功！');
+            
+            // 如果当前在记录页面，刷新列表
+            if (currentPage === 'records') {
+                loadRecords();
+            }
+            
+            voiceResultData = null;
+        }
+        
+        function cancelVoiceResult() {
+            const modal = document.getElementById('voiceResultModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            voiceResultData = null;
+        }
+        
+        // 获取当前位置
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                currentLocation = '位置服务不可用';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // 使用逆地理编码获取地址（这里模拟）
+                    currentLocation = `纬度: ${lat.toFixed(4)}, 经度: ${lng.toFixed(4)}`;
+                },
+                function(error) {
+                    console.error('位置获取失败:', error);
+                    currentLocation = '位置获取失败';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        }
+        
+        
+        // 显示提示消息
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                z-index: 3000;
+                animation: fadeIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+        
+        // 使语音按钮可拖动
+        function makeVoiceFabDraggable() {
+            const voiceFab = document.getElementById('voiceFab');
+            const appContainer = document.querySelector('.app-container');
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            voiceFab.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return; // 只响应左键
+                
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(window.getComputedStyle(voiceFab).left) || 0;
+                startTop = parseInt(window.getComputedStyle(voiceFab).top) || 0;
+                
+                voiceFab.style.transition = 'none';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                let newLeft = startLeft + deltaX;
+                let newTop = startTop + deltaY;
+                
+                // 限制在app容器范围内
+                const containerRect = appContainer.getBoundingClientRect();
+                const maxLeft = containerRect.width - voiceFab.offsetWidth;
+                const maxTop = containerRect.height - voiceFab.offsetHeight;
+                
+                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                newTop = Math.max(0, Math.min(newTop, maxTop));
+                
+                voiceFab.style.left = newLeft + 'px';
+                voiceFab.style.top = newTop + 'px';
+            });
+            
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    voiceFab.style.transition = 'all 0.3s ease';
+                }
+            });
+            
+            // 触摸事件支持
+            voiceFab.addEventListener('touchstart', function(e) {
+                if (e.touches.length !== 1) return;
+                
+                isDragging = true;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startLeft = parseInt(window.getComputedStyle(voiceFab).left) || 0;
+                startTop = parseInt(window.getComputedStyle(voiceFab).top) || 0;
+                
+                voiceFab.style.transition = 'none';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging || e.touches.length !== 1) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                
+                let newLeft = startLeft + deltaX;
+                let newTop = startTop + deltaY;
+                
+                // 限制在app容器范围内
+                const containerRect = appContainer.getBoundingClientRect();
+                const maxLeft = containerRect.width - voiceFab.offsetWidth;
+                const maxTop = containerRect.height - voiceFab.offsetHeight;
+                
+                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                newTop = Math.max(0, Math.min(newTop, maxTop));
+                
+                voiceFab.style.left = newLeft + 'px';
+                voiceFab.style.top = newTop + 'px';
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchend', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    voiceFab.style.transition = 'all 0.3s ease';
+                }
+            });
+        }
+        
+        // 初始化WebSocket连接
+        function initWebSocket() {
+            ws = new WebSocket('ws://localhost:3002');
+            
+            ws.onopen = () => {
+                console.log('WebSocket连接成功');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'new_message') {
+                    loadRecords();
+                } else if (data.type === 'new_record') {
+                    loadRecords();
+                } else if (data.type === 'new_reminder') {
+                    loadReminders();
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket连接失败:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket连接关闭');
+                setTimeout(initWebSocket, 5000);
+            };
+        }
+        
+        // 切换页面
+        function switchPage(page) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            // 显示目标页面
+            document.getElementById(page + 'Page').classList.add('active');
+            
+            // 更新导航状态
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // 更新页面标题
+            document.getElementById('pageTitle').textContent = pageTitles[page];
+            
+            // 控制搜索栏显示
+            const searchBar = document.getElementById('searchBar');
+            if (page === 'records') {
+                searchBar.style.display = 'block';
+            } else {
+                searchBar.style.display = 'none';
+                clearSearch(); // 清除搜索内容
+            }
+            
+            // 控制底部快速操作图标显示
+            const bottomQuickActions = document.getElementById('bottomQuickActions');
+            if (page === 'home') {
+                bottomQuickActions.style.display = 'flex';
+            } else {
+                bottomQuickActions.style.display = 'none';
+            }
+            
+            currentPage = page;
+            
+            // 加载页面数据
+            if (page === 'records') {
+                loadRecords();
+            } else if (page === 'stats') {
+                loadStats();
+            } else if (page === 'reminders') {
+                loadReminders();
+            }
+        }
+        
+        // 加载记录
+        function loadRecords() {
+            fetch('/api/records')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        allRecords = data.data; // 存储所有记录
+                        filteredRecords = data.data; // 初始化过滤记录
+                        renderRecords(data.data); // 使用新的渲染函数
+                    } else {
+                        allRecords = [];
+                        filteredRecords = [];
+                        renderRecords([]);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载记录失败:', error);
+                    allRecords = [];
+                    filteredRecords = [];
+                    document.getElementById('recordsList').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>加载失败</h3>
+                            <p>请检查网络连接</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // 加载统计数据
+        function loadStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const stats = data.data;
+                        document.getElementById('totalRecords').textContent = stats.totalRecords || 0;
+                        document.getElementById('totalReminders').textContent = stats.totalReminders || 0;
+                        document.getElementById('weeklyActivity').textContent = stats.weeklyActivity?.reduce((sum, day) => sum + day.messages + day.records, 0) || 0;
+                        document.getElementById('monthlyRecords').textContent = stats.monthlyStats?.records || 0;
+                        
+                        // 更新图表
+                        updateActivityChart(stats.weeklyActivity || []);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载统计数据失败:', error);
+                });
+        }
+        
+        // 更新活动图表
+        function updateActivityChart(weeklyData) {
+            const chartContainer = document.getElementById('activityChart');
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            
+            chartContainer.innerHTML = `
+                <div style="display: flex; align-items: end; justify-content: space-around; height: 100%; padding: 20px;">
+                    ${weeklyData.map((day, index) => {
+                        const height = Math.max(20, (day.messages + day.records) * 10);
+                        return `
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                <div style="width: 20px; height: ${height}px; background: var(--primary); border-radius: 4px; margin-bottom: 8px;"></div>
+                                <span style="font-size: 12px; color: var(--gray-600);">${days[index]}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        // 加载提醒
+        function loadReminders() {
+            fetch('/api/reminders')
+                .then(response => response.json())
+                .then(data => {
+                    const remindersList = document.getElementById('remindersList');
+                    if (data.success && data.data.length > 0) {
+                        remindersList.innerHTML = data.data.map(reminder => `
+                            <div class="reminder-item">
+                                <div class="reminder-header">
+                                    <div class="reminder-title">${reminder.title || '提醒'}</div>
+                                    <div class="reminder-time">${new Date(reminder.createdAt).toLocaleString()}</div>
+                                </div>
+                                <div class="reminder-content">${reminder.content || '无内容'}</div>
+                                <div class="reminder-status ${reminder.isActive ? 'active' : 'completed'}">
+                                    <i class="fas fa-${reminder.isActive ? 'clock' : 'check'}"></i>
+                                    ${reminder.isActive ? '进行中' : '已完成'}
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        remindersList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-bell"></i>
+                                <h3>暂无提醒</h3>
+                                <p>点击下方按钮设置提醒</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载提醒失败:', error);
+                });
+        }
+        
+        // 显示添加模态框
+        function showAddModal() {
+            const type = prompt('选择类型: 1-记录, 2-提醒');
+            if (type === '1') {
+                showRecordModal();
+            } else if (type === '2') {
+                showReminderModal();
+            }
+        }
+        
+        // 显示记录模态框
+        function showRecordModal() {
+            const title = prompt('请输入记录标题:');
+            if (title) {
+                const content = prompt('请输入记录内容:');
+                if (content) {
+                    ws.send(JSON.stringify({
+                        type: 'add_record',
+                        data: { title, content }
+                    }));
+                    alert('记录添加成功！');
+                }
+            }
+        }
+        
+        // 显示提醒模态框
+        function showReminderModal() {
+            const title = prompt('请输入提醒标题:');
+            if (title) {
+                const content = prompt('请输入提醒内容:');
+                if (content) {
+                    ws.send(JSON.stringify({
+                        type: 'add_reminder',
+                        data: { title, content }
+                    }));
+                    alert('提醒设置成功！');
+                }
+            }
+        }
+        
+        // 其他功能函数
+        function showSearch() {
+            alert('搜索功能开发中...');
+        }
+        
+        function showSettings() {
+            alert('设置功能开发中...');
+        }
+        
+        function showAbout() {
+            alert('拾光豆 v2.0.0\n智能语音助手');
+        }
+        
+        function showHelp() {
+            alert('帮助功能开发中...');
+        }
+        
+        // 搜索功能
+        let allRecords = []; // 存储所有记录
+        let filteredRecords = []; // 存储过滤后的记录
+        let batchMode = false; // 批量选择模式
+        let selectedRecords = new Set(); // 选中的记录ID
+        
+        function searchRecords(query) {
+            const searchInput = document.getElementById('searchInput');
+            const searchClear = document.getElementById('searchClear');
+            
+            // 显示/隐藏清除按钮
+            if (query.trim() === '') {
+                searchClear.style.display = 'none';
+                filteredRecords = allRecords;
+            } else {
+                searchClear.style.display = 'block';
+                // 模糊搜索
+                filteredRecords = allRecords.filter(record => {
+                    const title = record.title ? record.title.toLowerCase() : '';
+                    const content = record.content ? record.content.toLowerCase() : '';
+                    const searchQuery = query.toLowerCase();
+                    return title.includes(searchQuery) || content.includes(searchQuery);
+                });
+            }
+            
+            // 重新渲染记录列表
+            renderRecords(filteredRecords);
+        }
+        
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchClear = document.getElementById('searchClear');
+            
+            searchInput.value = '';
+            searchClear.style.display = 'none';
+            filteredRecords = allRecords;
+            renderRecords(allRecords);
+        }
+        
+        function renderRecords(records) {
+            const recordsList = document.getElementById('recordsList');
+            
+            if (records.length === 0) {
+                recordsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>没有找到记录</h3>
+                        <p>尝试其他关键词或添加新记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按日期分组
+            const groupedRecords = groupRecordsByDate(records);
+            
+            recordsList.innerHTML = Object.keys(groupedRecords).map(date => {
+                const dayRecords = groupedRecords[date];
+                return `
+                    <div class="date-section">
+                        <div class="date-header">
+                            <h3 class="date-title">${date}</h3>
+                            <span class="date-count">${dayRecords.length}条记录</span>
+                        </div>
+                        ${dayRecords.map(record => `
+                            <div class="record-item ${selectedRecords.has(record.id) ? 'selected' : ''}" data-id="${record.id}">
+                                ${batchMode ? `<div class="record-checkbox ${selectedRecords.has(record.id) ? 'checked' : ''}" onclick="toggleRecordSelection('${record.id}')"></div>` : ''}
+                                <div class="record-header">
+                                    <h4 class="record-title">${record.title || '无标题'}</h4>
+                                    <span class="record-time">${new Date(record.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                                <div class="record-content">${record.content || '无内容'}</div>
+                                <div class="record-actions">
+                                    <button class="record-action-btn edit-btn" onclick="editRecord('${record.id}')">编辑</button>
+                                    <button class="record-action-btn delete-btn" onclick="deleteRecord('${record.id}')">删除</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 按日期分组记录
+        function groupRecordsByDate(records) {
+            const groups = {};
+            records.forEach(record => {
+                const date = new Date(record.timestamp);
+                const dateKey = date.toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+                
+                if (!groups[dateKey]) {
+                    groups[dateKey] = [];
+                }
+                groups[dateKey].push(record);
+            });
+            
+            // 按日期排序（最新的在前）
+            const sortedGroups = {};
+            Object.keys(groups).sort((a, b) => {
+                const dateA = new Date(a);
+                const dateB = new Date(b);
+                return dateB - dateA;
+            }).forEach(key => {
+                sortedGroups[key] = groups[key].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            });
+            
+            return sortedGroups;
+        }
+        
+        // 批量选择模式切换
+        function toggleBatchMode() {
+            batchMode = !batchMode;
+            const batchSelectBtn = document.getElementById('batchSelectBtn');
+            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+            
+            if (batchMode) {
+                batchSelectBtn.classList.add('active');
+                batchDeleteBtn.style.display = 'flex';
+                document.body.classList.add('batch-mode');
+            } else {
+                batchSelectBtn.classList.remove('active');
+                batchDeleteBtn.style.display = 'none';
+                document.body.classList.remove('batch-mode');
+                selectedRecords.clear();
+            }
+            
+            renderRecords(filteredRecords);
+        }
+        
+        // 切换记录选择状态
+        function toggleRecordSelection(recordId) {
+            if (selectedRecords.has(recordId)) {
+                selectedRecords.delete(recordId);
+            } else {
+                selectedRecords.add(recordId);
+            }
+            
+            // 更新UI
+            const recordItem = document.querySelector(`[data-id="${recordId}"]`);
+            const checkbox = recordItem.querySelector('.record-checkbox');
+            
+            if (selectedRecords.has(recordId)) {
+                recordItem.classList.add('selected');
+                checkbox.classList.add('checked');
+            } else {
+                recordItem.classList.remove('selected');
+                checkbox.classList.remove('checked');
+            }
+        }
+        
+        // 批量删除记录
+        function batchDeleteRecords() {
+            if (selectedRecords.size === 0) {
+                alert('请先选择要删除的记录');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedRecords.size} 条记录吗？`)) {
+                // 这里应该调用API删除记录
+                selectedRecords.forEach(recordId => {
+                    deleteRecordFromList(recordId);
+                });
+                
+                selectedRecords.clear();
+                toggleBatchMode();
+                loadRecords(); // 重新加载记录
+                showToast('批量删除成功');
+            }
+        }
+        
+        // 编辑记录
+        function editRecord(recordId) {
+            const record = allRecords.find(r => r.id === recordId);
+            if (!record) return;
+            
+            const newTitle = prompt('编辑标题:', record.title || '');
+            if (newTitle === null) return; // 用户取消
+            
+            const newContent = prompt('编辑内容:', record.content || '');
+            if (newContent === null) return; // 用户取消
+            
+            // 更新记录
+            record.title = newTitle;
+            record.content = newContent;
+            record.updatedAt = new Date().toISOString();
+            
+            // 这里应该调用API更新记录
+            updateRecordInList(record);
+            
+            renderRecords(filteredRecords);
+            showToast('记录更新成功');
+        }
+        
+        // 删除单条记录
+        function deleteRecord(recordId) {
+            if (confirm('确定要删除这条记录吗？')) {
+                deleteRecordFromList(recordId);
+                loadRecords(); // 重新加载记录
+                showToast('记录删除成功');
+            }
+        }
+        
+        // 从列表中删除记录（模拟API调用）
+        function deleteRecordFromList(recordId) {
+            allRecords = allRecords.filter(r => r.id !== recordId);
+            filteredRecords = filteredRecords.filter(r => r.id !== recordId);
+        }
+        
+        // 更新记录（模拟API调用）
+        function updateRecordInList(record) {
+            const index = allRecords.findIndex(r => r.id === record.id);
+            if (index !== -1) {
+                allRecords[index] = record;
+            }
+            
+            const filteredIndex = filteredRecords.findIndex(r => r.id === record.id);
+            if (filteredIndex !== -1) {
+                filteredRecords[filteredIndex] = record;
+            }
+        }
+        
+        // 显示提示消息
+        function showToast(message) {
+            // 简单的提示实现
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 10000;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 2000);
+        }
+        
+        // 加载最新记录到首页
+        function loadLatestRecords() {
+            fetch('/api/records')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        // 获取最新的3条记录
+                        const latestRecords = data.data.slice(0, 3);
+                        const latestRecordsContent = document.getElementById('latestRecordsContent');
+                        
+                        if (latestRecords.length === 0) {
+                            latestRecordsContent.innerHTML = `
+                                <div class="latest-record-item">
+                                    <span class="record-time">-</span>
+                                    <span class="record-text">暂无记录</span>
+                                </div>
+                            `;
+                        } else {
+                            latestRecordsContent.innerHTML = latestRecords.map(record => {
+                                const timeAgo = getTimeAgo(record.timestamp);
+                                const content = record.content || record.title || '无内容';
+                                return `
+                                    <div class="latest-record-item">
+                                        <span class="record-time">${timeAgo}</span>
+                                        <span class="record-text">${content}</span>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                    } else {
+                        const latestRecordsContent = document.getElementById('latestRecordsContent');
+                        latestRecordsContent.innerHTML = `
+                            <div class="latest-record-item">
+                                <span class="record-time">-</span>
+                                <span class="record-text">暂无记录</span>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载最新记录失败:', error);
+                    const latestRecordsContent = document.getElementById('latestRecordsContent');
+                    latestRecordsContent.innerHTML = `
+                        <div class="latest-record-item">
+                            <span class="record-time">-</span>
+                            <span class="record-text">加载失败</span>
+                        </div>
+                    `;
+                });
+        }
+        
+        // 获取相对时间
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const recordTime = new Date(timestamp);
+            const diffMs = now - recordTime;
+            const diffMinutes = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffMinutes < 1) {
+                return '刚刚';
+            } else if (diffMinutes < 60) {
+                return `${diffMinutes}分钟前`;
+            } else if (diffHours < 24) {
+                return `${diffHours}小时前`;
+            } else if (diffDays < 7) {
+                return `${diffDays}天前`;
+            } else {
+                return recordTime.toLocaleDateString();
+            }
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = function() {
+            initWebSocket();
+            loadRecords();
+            loadStats();
+            loadReminders();
+            loadLatestRecords(); // 加载最新记录到首页
+            makeVoiceFabDraggable();
+        };
+    </script>
+</body>
+</html>
