@@ -1609,7 +1609,7 @@
                     
                     <div class="ai-conversation" id="voiceInputText">
                         <div class="ai-message" id="aiMessage">
-                            你好！我是拾光豆AI助手，可以帮你记录生活、设置提醒、回答问题。按住语音按钮开始对话吧！
+                            <span id="aiGreeting">你好！我是拾光豆AI助手</span>，我可以帮你记录生活、设置提醒、智能对话。按住语音按钮开始我们的对话吧！✨
                         </div>
                         <div class="user-message" id="userMessage" style="display: none;">
                             <div class="user-text" id="userText"></div>
@@ -1876,17 +1876,159 @@
         let currentCardIndex = 0; // 当前显示的卡片索引
         let selectedRecordsForCards = new Set(); // 选中的记录ID
         
+        // 检查麦克风权限状态
+        async function checkMicrophonePermission() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    return { supported: false, granted: false, error: '浏览器不支持麦克风访问' };
+                }
+                
+                // 检查权限状态
+                const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+                
+                return {
+                    supported: true,
+                    granted: permissionStatus.state === 'granted',
+                    state: permissionStatus.state,
+                    error: null
+                };
+            } catch (error) {
+                console.log('无法检查麦克风权限:', error);
+                return { supported: true, granted: false, error: error.message };
+            }
+        }
+        
+        // 显示麦克风权限提示
+        function showMicrophonePermissionPrompt() {
+            const promptHtml = `
+                <div class="modal" id="micPermissionModal" style="display: flex;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>🎤 麦克风权限</h3>
+                            <button class="modal-close" onclick="closeMicPermissionModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div style="text-align: center; padding: 20px;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
+                                <h4 style="margin-bottom: 12px;">需要麦克风权限</h4>
+                                <p style="color: var(--gray-600); line-height: 1.5; margin-bottom: 20px;">
+                                    为了使用语音录入功能，需要访问您的麦克风。<br>
+                                    请点击"允许"按钮授权麦克风访问权限。
+                                </p>
+                                <div style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                                    <p style="font-size: 14px; color: var(--gray-700); margin: 0;">
+                                        <strong>使用说明：</strong><br>
+                                        • 按住语音按钮开始录音<br>
+                                        • 松开按钮结束录音<br>
+                                        • 支持实时语音转文字<br>
+                                        • 自动保存录音内容
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeMicPermissionModal()">取消</button>
+                            <button class="btn btn-primary" onclick="requestMicrophonePermission()">允许麦克风</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 移除已存在的模态框
+            const existingModal = document.getElementById('micPermissionModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 添加新的模态框
+            document.body.insertAdjacentHTML('beforeend', promptHtml);
+        }
+        
+        // 关闭麦克风权限提示
+        function closeMicPermissionModal() {
+            const modal = document.getElementById('micPermissionModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // 请求麦克风权限
+        async function requestMicrophonePermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // 立即停止流，我们只是要权限
+                stream.getTracks().forEach(track => track.stop());
+                
+                closeMicPermissionModal();
+                showToast('麦克风权限已授权，可以开始语音录入！');
+                
+                // 更新权限状态
+                updateMicrophoneStatus(true);
+                
+            } catch (error) {
+                console.error('请求麦克风权限失败:', error);
+                showToast('麦克风权限授权失败，请手动允许权限');
+            }
+        }
+        
+        // 更新麦克风状态显示
+        function updateMicrophoneStatus(hasPermission) {
+            const voiceIcon = document.querySelector('.quick-icon-item[onmousedown="startVoiceRecording()"] .quick-icon');
+            if (voiceIcon) {
+                if (hasPermission) {
+                    voiceIcon.style.opacity = '1';
+                    voiceIcon.title = '点击开始语音录入';
+                } else {
+                    voiceIcon.style.opacity = '0.6';
+                    voiceIcon.title = '需要麦克风权限';
+                }
+            }
+        }
+        
+        // 页面加载时检查麦克风权限
+        async function initMicrophoneCheck() {
+            const permission = await checkMicrophonePermission();
+            
+            if (!permission.supported) {
+                console.log('浏览器不支持麦克风访问');
+                updateMicrophoneStatus(false);
+                return;
+            }
+            
+            if (!permission.granted) {
+                console.log('麦克风权限未授权');
+                updateMicrophoneStatus(false);
+                
+                // 延迟显示权限提示，让用户先熟悉界面
+                setTimeout(() => {
+                    showMicrophonePermissionPrompt();
+                }, 2000);
+            } else {
+                console.log('麦克风权限已授权');
+                updateMicrophoneStatus(true);
+            }
+        }
+        
         // 页面标题映射
         async function startVoiceRecording() {
             if (isRecording) return;
             
             try {
+                // 检查浏览器支持
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('浏览器不支持麦克风访问');
+                }
+                
                 // 请求麦克风权限
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: {
                         echoCancellation: true,
                         noiseSuppression: true,
-                        sampleRate: 44100
+                        sampleRate: 44100,
+                        channelCount: 1,
+                        autoGainControl: true
                     } 
                 });
                 
@@ -1921,9 +2063,9 @@
                 const userMessage = document.getElementById('userMessage');
                 const userText = document.getElementById('userText');
                 
-                aiMessage.style.display = 'none';
-                userMessage.style.display = 'block';
-                userText.textContent = '';
+                if (aiMessage) aiMessage.style.display = 'none';
+                if (userMessage) userMessage.style.display = 'block';
+                if (userText) userText.textContent = '';
                 
                 // 更新语音按钮状态
                 const voiceIcon = document.querySelector('.quick-icon-item[onmousedown="startVoiceRecording()"] .quick-icon');
@@ -1947,10 +2089,42 @@
                 console.log('开始真实录音...');
                 
             } catch (error) {
-                console.error('无法访问麦克风:', error);
-                showToast('无法访问麦克风，请检查权限设置');
+                console.error('麦克风访问错误:', error);
+                
+                let errorMessage = '无法访问麦克风';
+                let errorDetail = '';
+                
+                // 根据错误类型提供具体的解决建议
+                switch (error.name) {
+                    case 'NotAllowedError':
+                        errorMessage = '麦克风权限被拒绝';
+                        errorDetail = '请在浏览器设置中允许麦克风权限，然后刷新页面重试';
+                        break;
+                    case 'NotFoundError':
+                        errorMessage = '未找到麦克风设备';
+                        errorDetail = '请检查麦克风是否已连接并正常工作';
+                        break;
+                    case 'NotReadableError':
+                        errorMessage = '麦克风被其他应用占用';
+                        errorDetail = '请关闭其他使用麦克风的应用程序后重试';
+                        break;
+                    case 'OverconstrainedError':
+                        errorMessage = '麦克风配置不支持';
+                        errorDetail = '当前麦克风不支持所需的音频配置';
+                        break;
+                    case 'SecurityError':
+                        errorMessage = '安全限制';
+                        errorDetail = '请在HTTPS环境下使用或检查浏览器安全设置';
+                        break;
+                    default:
+                        errorDetail = error.message || '未知错误';
+                }
+                
+                // 显示详细的错误信息
+                showToast(`${errorMessage}: ${errorDetail}`);
                 
                 // 如果无法访问麦克风，回退到模拟模式
+                console.log('回退到模拟录音模式');
                 fallbackToSimulation();
             }
         }
@@ -1971,6 +2145,9 @@
                 recognition.stop();
             }
             
+            // 停止模拟语音转文字
+            stopRealTimeVoiceToText();
+            
             // 隐藏录音状态
             document.getElementById('voiceInputText').classList.remove('recording');
             document.getElementById('aiStatus').textContent = '正在思考...';
@@ -1984,6 +2161,11 @@
                 voiceIcon.innerHTML = '<i class="fas fa-microphone"></i>';
             }
             
+            // 延迟保存语音记录，确保语音识别完成
+            setTimeout(() => {
+                saveCurrentVoiceRecord();
+            }, 200);
+            
             console.log('停止录音，时长:', recordingDuration + 'ms');
         }
         
@@ -1993,33 +2175,68 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
                 
+                // 优化语音识别配置以提高速度
                 recognition.continuous = true;
                 recognition.interimResults = true;
                 recognition.lang = 'zh-CN';
+                recognition.maxAlternatives = 1; // 只返回最佳结果
+                recognition.serviceURI = ''; // 使用默认服务
                 
                 recognition.onresult = (event) => {
                     let interimTranscript = '';
                     let finalTranscript = '';
                     
+                    // 优化结果处理，减少循环次数
                     for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
+                        const result = event.results[i];
+                        const transcript = result[0].transcript;
+                        
+                        if (result.isFinal) {
                             finalTranscript += transcript;
                         } else {
                             interimTranscript += transcript;
                         }
                     }
                     
-                    // 实时显示识别结果
+                    // 立即更新显示，减少延迟
                     const userText = document.getElementById('userText');
                     if (userText) {
-                        userText.textContent = finalTranscript + interimTranscript;
-                        currentVoiceText = finalTranscript + interimTranscript;
+                        const displayText = finalTranscript + interimTranscript;
+                        userText.textContent = displayText;
+                        currentVoiceText = displayText;
+                        
+                        // 添加打字机效果，提升视觉体验
+                        userText.style.opacity = '1';
+                        userText.style.transform = 'translateY(0)';
+                    }
+                };
+                
+                recognition.onstart = () => {
+                    console.log('语音识别已开始');
+                };
+                
+                recognition.onend = () => {
+                    console.log('语音识别已结束');
+                    // 如果还在录音，自动重启识别
+                    if (isRecording) {
+                        setTimeout(() => {
+                            if (isRecording) {
+                                recognition.start();
+                            }
+                        }, 100);
                     }
                 };
                 
                 recognition.onerror = (event) => {
                     console.error('语音识别错误:', event.error);
+                    // 如果是网络错误，尝试重启
+                    if (event.error === 'network' && isRecording) {
+                        setTimeout(() => {
+                            if (isRecording) {
+                                recognition.start();
+                            }
+                        }, 1000);
+                    }
                 };
                 
                 recognition.start();
@@ -2057,6 +2274,15 @@
                 voiceIcon.innerHTML = '<i class="fas fa-stop"></i>';
             }
             
+            // 更新AI助手状态
+            const aiMessage = document.getElementById('aiMessage');
+            const userMessage = document.getElementById('userMessage');
+            const userText = document.getElementById('userText');
+            
+            if (aiMessage) aiMessage.style.display = 'none';
+            if (userMessage) userMessage.style.display = 'block';
+            if (userText) userText.textContent = '';
+            
             // 清空输入框
             const voiceInputText = document.getElementById('voiceInputText');
             if (voiceInputText) {
@@ -2078,6 +2304,7 @@
         
         function startRealTimeVoiceToText() {
             const voiceInputText = document.getElementById('voiceInputText');
+            const userText = document.getElementById('userText');
             if (!voiceInputText) return;
             
             // 模拟实时语音转文字
@@ -2103,16 +2330,28 @@
                     const currentText = sampleTexts[textIndex];
                     if (charIndex < currentText.length) {
                         currentVoiceText += currentText[charIndex];
+                        
+                        // 同时更新两个位置
+                        if (userText) {
+                            userText.textContent = currentVoiceText;
+                        }
                         voiceInputText.textContent = currentVoiceText;
+                        
                         charIndex++;
                     } else {
                         currentVoiceText += ' ';
+                        
+                        // 同时更新两个位置
+                        if (userText) {
+                            userText.textContent = currentVoiceText;
+                        }
                         voiceInputText.textContent = currentVoiceText;
+                        
                         textIndex++;
                         charIndex = 0;
                     }
                 }
-            }, 100); // 每100ms添加一个字符
+            }, 50); // 加快速度到50ms
         }
         
         function stopRealTimeVoiceToText() {
@@ -2171,7 +2410,7 @@
                     if (aiMessage) aiMessage.style.display = 'block';
                     currentVoiceText = '';
                     
-                    // 更新状态文本
+                    // 立即更新状态文本
                     document.getElementById('voiceStatusText').textContent = '语音录入完成';
                     document.getElementById('aiStatus').textContent = '在线';
                 } else {
@@ -2442,47 +2681,602 @@ END:VCALENDAR`;
             }
         }
         
-        // AI回复生成
+        // 智能AI助手 - 增强版
+        let conversationHistory = []; // 对话历史
+        let userProfile = { // 用户画像
+            preferences: [],
+            interests: [],
+            mood: 'neutral',
+            lastInteraction: null,
+            interactionCount: 0
+        };
+        
         function generateAIResponse(userInput, type) {
             const aiMessage = document.getElementById('aiMessage');
+            const aiStatus = document.getElementById('aiStatus');
+            
             if (!aiMessage) return;
             
-            let response = '';
+            // 更新用户画像
+            updateUserProfile(userInput);
             
-            if (type === 'reminder') {
-                const responses = [
-                    `好的，我已经为你设置了提醒！${userInput.includes('明天') ? '明天' : userInput.includes('后天') ? '后天' : '稍后'}我会准时提醒你的。`,
-                    `提醒已设置完成！我会在${userInput.includes('点') ? '指定时间' : '合适时间'}提醒你的。`,
-                    `收到！我已经记录下你的提醒事项，到时候会准时通知你的。`,
-                    `好的，提醒事项已创建！我会帮你记住这个重要的事情。`
-                ];
-                response = responses[Math.floor(Math.random() * responses.length)];
-            } else {
-                // 根据内容生成智能回复
-                if (userInput.includes('天气')) {
-                    response = '今天天气确实不错！记得多出去走走，享受美好的阳光。';
-                } else if (userInput.includes('工作') || userInput.includes('学习')) {
-                    response = '听起来你很有干劲！继续保持这种积极的状态，相信你一定能取得好成绩。';
-                } else if (userInput.includes('心情') || userInput.includes('感觉')) {
-                    response = '感谢你与我分享你的感受。保持积极的心态，每一天都是新的开始！';
-                } else if (userInput.includes('朋友') || userInput.includes('家人')) {
-                    response = '与朋友和家人在一起的时光总是最珍贵的。珍惜这些美好的时刻！';
-                } else if (userInput.includes('计划') || userInput.includes('安排')) {
-                    response = '有计划的生活更有条理！我会帮你记录这些重要安排。';
+            // 立即更新状态
+            if (aiStatus) {
+                aiStatus.textContent = '正在思考...';
+            }
+            
+            // 使用setTimeout确保UI更新
+            setTimeout(() => {
+                let response = '';
+                
+                // 智能分析用户输入
+                const analysis = analyzeUserInput(userInput);
+                
+                // 检查上下文记忆
+                const contextualResponse = getContextualResponse(userInput, analysis);
+                if (contextualResponse) {
+                    response = contextualResponse;
+                } else if (type === 'reminder') {
+                    response = generateReminderResponse(userInput, analysis);
                 } else {
-                    const generalResponses = [
-                        '感谢你与我分享！我已经记录下这些内容。',
-                        '很有意思的想法！我会帮你保存这些记录。',
-                        '好的，我已经记录下来了。还有什么想告诉我的吗？',
-                        '收到！这些内容已经保存到你的记录中了。',
-                        '感谢分享！我会帮你整理这些信息。'
-                    ];
-                    response = generalResponses[Math.floor(Math.random() * generalResponses.length)];
+                    response = generateIntelligentResponse(userInput, analysis);
+                }
+                
+                // 学习用户交互
+                learnFromInteraction(userInput, response, analysis);
+                
+                // 保存对话历史
+                conversationHistory.push({
+                    user: userInput,
+                    ai: response,
+                    timestamp: Date.now(),
+                    type: type,
+                    analysis: analysis
+                });
+                
+                // 限制历史记录长度
+                if (conversationHistory.length > 10) {
+                    conversationHistory = conversationHistory.slice(-10);
+                }
+                
+                // 立即更新状态
+                if (aiStatus) {
+                    aiStatus.textContent = '在线';
+                }
+                
+                // 使用快速打字机效果
+                typewriterEffectFast(aiMessage, response);
+                
+            }, 30);
+        }
+        
+        // 分析用户输入
+        function analyzeUserInput(input) {
+            const analysis = {
+                emotion: detectEmotion(input),
+                intent: detectIntent(input),
+                keywords: extractKeywords(input),
+                timeContext: detectTimeContext(input),
+                urgency: detectUrgency(input),
+                sentiment: analyzeSentiment(input)
+            };
+            return analysis;
+        }
+        
+        // 情感检测
+        function detectEmotion(input) {
+            const positiveWords = ['开心', '高兴', '快乐', '兴奋', '满意', '喜欢', '爱', '棒', '好', '赞'];
+            const negativeWords = ['难过', '伤心', '沮丧', '失望', '生气', '愤怒', '讨厌', '烦', '累', '困'];
+            const neutralWords = ['一般', '还行', '正常', '普通', '可以'];
+            
+            const lowerInput = input.toLowerCase();
+            
+            if (positiveWords.some(word => lowerInput.includes(word))) {
+                return 'positive';
+            } else if (negativeWords.some(word => lowerInput.includes(word))) {
+                return 'negative';
+            } else if (neutralWords.some(word => lowerInput.includes(word))) {
+                return 'neutral';
+            }
+            
+            return 'neutral';
+        }
+        
+        // 意图检测
+        function detectIntent(input) {
+            if (input.includes('提醒') || input.includes('记得') || input.includes('不要忘记')) {
+                return 'reminder';
+            } else if (input.includes('天气') || input.includes('温度') || input.includes('下雨')) {
+                return 'weather';
+            } else if (input.includes('时间') || input.includes('几点') || input.includes('现在')) {
+                return 'time';
+            } else if (input.includes('帮助') || input.includes('怎么') || input.includes('如何')) {
+                return 'help';
+            } else if (input.includes('计划') || input.includes('安排') || input.includes('准备')) {
+                return 'planning';
+            } else if (input.includes('工作') || input.includes('学习') || input.includes('任务')) {
+                return 'work';
+            } else if (input.includes('朋友') || input.includes('家人') || input.includes('聚会')) {
+                return 'social';
+            } else if (input.includes('健康') || input.includes('运动') || input.includes('锻炼')) {
+                return 'health';
+            } else if (input.includes('购物') || input.includes('买') || input.includes('购买')) {
+                return 'shopping';
+            }
+            
+            return 'general';
+        }
+        
+        // 关键词提取
+        function extractKeywords(input) {
+            const keywords = [];
+            const commonWords = ['的', '了', '在', '是', '我', '你', '他', '她', '它', '们', '这', '那', '和', '与', '或', '但', '因为', '所以', '如果', '虽然', '但是'];
+            
+            const words = input.split(/[\s,，。！？]/).filter(word => 
+                word.length > 1 && !commonWords.includes(word)
+            );
+            
+            return words.slice(0, 5); // 返回前5个关键词
+        }
+        
+        // 时间上下文检测
+        function detectTimeContext(input) {
+            const timeWords = {
+                '现在': 'present',
+                '今天': 'today',
+                '明天': 'tomorrow',
+                '后天': 'day_after_tomorrow',
+                '昨天': 'yesterday',
+                '早上': 'morning',
+                '中午': 'noon',
+                '下午': 'afternoon',
+                '晚上': 'evening',
+                '深夜': 'late_night'
+            };
+            
+            for (const [word, context] of Object.entries(timeWords)) {
+                if (input.includes(word)) {
+                    return context;
                 }
             }
             
-            // 打字机效果显示AI回复
-            typewriterEffect(aiMessage, response);
+            return 'present';
+        }
+        
+        // 紧急程度检测
+        function detectUrgency(input) {
+            const urgentWords = ['紧急', '马上', '立刻', '立即', '快', '急', '重要', '必须', '一定'];
+            const normalWords = ['稍后', '有空', '方便', '合适', '适当'];
+            
+            if (urgentWords.some(word => input.includes(word))) {
+                return 'high';
+            } else if (normalWords.some(word => input.includes(word))) {
+                return 'low';
+            }
+            
+            return 'medium';
+        }
+        
+        // 情感分析
+        function analyzeSentiment(input) {
+            const positiveScore = ['好', '棒', '赞', '喜欢', '爱', '开心', '高兴', '满意', '成功', '顺利'].reduce((score, word) => 
+                score + (input.includes(word) ? 1 : 0), 0);
+            
+            const negativeScore = ['坏', '差', '讨厌', '烦', '累', '困', '难过', '失望', '失败', '困难'].reduce((score, word) => 
+                score + (input.includes(word) ? 1 : 0), 0);
+            
+            if (positiveScore > negativeScore) {
+                return 'positive';
+            } else if (negativeScore > positiveScore) {
+                return 'negative';
+            }
+            
+            return 'neutral';
+        }
+        
+        // 更新用户画像
+        function updateUserProfile(input) {
+            userProfile.interactionCount++;
+            userProfile.lastInteraction = Date.now();
+            
+            const analysis = analyzeUserInput(input);
+            
+            // 更新情感状态
+            if (analysis.emotion !== 'neutral') {
+                userProfile.mood = analysis.emotion;
+            }
+            
+            // 更新兴趣偏好
+            analysis.keywords.forEach(keyword => {
+                if (!userProfile.interests.includes(keyword)) {
+                    userProfile.interests.push(keyword);
+                }
+            });
+            
+            // 限制兴趣列表长度
+            if (userProfile.interests.length > 20) {
+                userProfile.interests = userProfile.interests.slice(-20);
+            }
+        }
+        
+        // 生成提醒回复
+        function generateReminderResponse(input, analysis) {
+            const timeContext = analysis.timeContext;
+            const urgency = analysis.urgency;
+            
+            let response = '';
+            
+            if (urgency === 'high') {
+                response = `🚨 紧急提醒已设置！我会立即提醒你：${input}`;
+            } else if (timeContext === 'tomorrow') {
+                response = `📅 明天的提醒已设置！我会准时提醒你：${input}`;
+            } else if (timeContext === 'evening') {
+                response = `🌙 今晚的提醒已设置！我会在合适的时间提醒你：${input}`;
+            } else {
+                response = `⏰ 提醒已设置完成！我会在${timeContext === 'present' ? '合适的时间' : '指定时间'}提醒你：${input}`;
+            }
+            
+            // 根据用户情感调整回复
+            if (analysis.emotion === 'positive') {
+                response += ' 很高兴看到你这么积极！';
+            } else if (analysis.emotion === 'negative') {
+                response += ' 别担心，我会帮你记住的。';
+            }
+            
+            return response;
+        }
+        
+        // 生成智能回复
+        function generateIntelligentResponse(input, analysis) {
+            const intent = analysis.intent;
+            const emotion = analysis.emotion;
+            const sentiment = analysis.sentiment;
+            const keywords = analysis.keywords;
+            
+            let response = '';
+            
+            // 根据意图生成回复
+            switch (intent) {
+                case 'weather':
+                    response = generateWeatherResponse(input, analysis);
+                    break;
+                case 'time':
+                    response = generateTimeResponse(input, analysis);
+                    break;
+                case 'help':
+                    response = generateHelpResponse(input, analysis);
+                    break;
+                case 'planning':
+                    response = generatePlanningResponse(input, analysis);
+                    break;
+                case 'work':
+                    response = generateWorkResponse(input, analysis);
+                    break;
+                case 'social':
+                    response = generateSocialResponse(input, analysis);
+                    break;
+                case 'health':
+                    response = generateHealthResponse(input, analysis);
+                    break;
+                case 'shopping':
+                    response = generateShoppingResponse(input, analysis);
+                    break;
+                default:
+                    response = generateGeneralResponse(input, analysis);
+            }
+            
+            // 根据情感调整回复
+            response = adjustResponseByEmotion(response, emotion, sentiment);
+            
+            // 添加个性化元素
+            response = addPersonalization(response, analysis);
+            
+            return response;
+        }
+        
+        // 天气相关回复
+        function generateWeatherResponse(input, analysis) {
+            const responses = [
+                '🌤️ 今天天气确实不错！建议你多出去走走，享受美好的阳光。',
+                '☀️ 阳光明媚的日子总是让人心情愉悦！记得做好防晒哦。',
+                '🌧️ 如果下雨的话，记得带伞，安全第一！',
+                '🌡️ 温度适宜，是外出的好时机！'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 时间相关回复
+        function generateTimeResponse(input, analysis) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString('zh-CN');
+            
+            return `🕐 现在是${timeStr}，${dateStr}。时间过得真快，要好好珍惜每一刻！`;
+        }
+        
+        // 帮助相关回复
+        function generateHelpResponse(input, analysis) {
+            return `🤖 我是你的智能助手！我可以帮你：\n\n• 📝 记录语音内容\n• ⏰ 设置提醒事项\n• 💬 智能对话交流\n• 📊 管理你的记录\n• 🎯 提供个性化建议\n\n有什么需要帮助的吗？`;
+        }
+        
+        // 计划相关回复
+        function generatePlanningResponse(input, analysis) {
+            const responses = [
+                '📋 有计划的生活更有条理！我会帮你记录这些重要安排。',
+                '🎯 目标明确，行动有力！相信你一定能完成计划。',
+                '⏰ 时间管理很重要，我会提醒你按时完成。',
+                '📅 好的计划是成功的一半！加油！'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 工作相关回复
+        function generateWorkResponse(input, analysis) {
+            if (analysis.emotion === 'positive') {
+                return '💼 工作顺利真是太好了！继续保持这种积极的状态，相信你一定能取得更好的成绩！';
+            } else if (analysis.emotion === 'negative') {
+                return '💪 工作中遇到困难是正常的，相信你的能力，坚持下去一定会有所突破！';
+            } else {
+                return '💼 工作要认真对待，但也要注意劳逸结合，保持身心健康！';
+            }
+        }
+        
+        // 社交相关回复
+        function generateSocialResponse(input, analysis) {
+            const responses = [
+                '👥 与朋友和家人在一起的时光总是最珍贵的！珍惜这些美好的时刻。',
+                '🎉 社交活动能带来很多快乐，记得多和重要的人保持联系！',
+                '💕 人际关系是生活中很重要的一部分，用心经营每一段关系。',
+                '🌟 和朋友相聚的时光总是过得特别快，要好好享受！'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 健康相关回复
+        function generateHealthResponse(input, analysis) {
+            const responses = [
+                '💪 健康是最大的财富！坚持锻炼，保持良好作息。',
+                '🏃‍♂️ 运动不仅能强身健体，还能让心情更愉悦！',
+                '🥗 健康饮食也很重要，记得多吃蔬菜水果。',
+                '😴 充足的睡眠是健康的基础，记得早睡早起！'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 购物相关回复
+        function generateShoppingResponse(input, analysis) {
+            const responses = [
+                '🛒 购物要理性消费，买真正需要的东西！',
+                '💰 记得货比三家，找到性价比最高的选择。',
+                '📝 可以列个购物清单，避免冲动消费。',
+                '🎁 如果是给别人的礼物，心意最重要！'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 通用回复
+        function generateGeneralResponse(input, analysis) {
+            const responses = [
+                '💭 感谢你与我分享这些想法！我会帮你记录并整理这些信息。',
+                '🌟 很有意思的想法！我会帮你保存这些记录，也许以后会有用。',
+                '📝 好的，我已经记录下来了。还有什么想告诉我的吗？',
+                '💡 收到！这些内容已经保存到你的记录中了，随时可以查看。',
+                '🤝 感谢分享！我会帮你整理这些信息，让生活更有条理。'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 根据情感调整回复
+        function adjustResponseByEmotion(response, emotion, sentiment) {
+            if (emotion === 'positive' || sentiment === 'positive') {
+                return response + ' 😊';
+            } else if (emotion === 'negative' || sentiment === 'negative') {
+                return response + ' 💙 我会一直陪伴你的！';
+            }
+            return response;
+        }
+        
+        // 添加个性化元素
+        function addPersonalization(response, analysis) {
+            // 根据用户兴趣添加个性化建议
+            if (userProfile.interests.length > 0) {
+                const recentInterest = userProfile.interests[userProfile.interests.length - 1];
+                if (analysis.keywords.includes(recentInterest)) {
+                    response += `\n\n💡 我注意到你对${recentInterest}很感兴趣，有什么相关的问题吗？`;
+                }
+            }
+            
+            // 根据交互次数调整回复
+            if (userProfile.interactionCount > 5) {
+                response += '\n\n🎯 很高兴看到你经常使用语音助手，我会越来越了解你的！';
+            }
+            
+            return response;
+        }
+        
+        // 智能建议系统
+        function generateSmartSuggestions() {
+            const suggestions = [];
+            const now = new Date();
+            const hour = now.getHours();
+            
+            // 基于时间的建议
+            if (hour >= 6 && hour < 9) {
+                suggestions.push('🌅 早上好！记得吃早餐，开始美好的一天！');
+            } else if (hour >= 9 && hour < 12) {
+                suggestions.push('☀️ 上午时光，适合处理重要工作！');
+            } else if (hour >= 12 && hour < 14) {
+                suggestions.push('🍽️ 午餐时间到了，记得好好吃饭！');
+            } else if (hour >= 14 && hour < 18) {
+                suggestions.push('🌤️ 下午时光，保持专注和效率！');
+            } else if (hour >= 18 && hour < 22) {
+                suggestions.push('🌆 傍晚时分，可以放松一下了！');
+            } else {
+                suggestions.push('🌙 夜深了，记得早点休息！');
+            }
+            
+            // 基于用户画像的建议
+            if (userProfile.interests.length > 0) {
+                const recentInterest = userProfile.interests[userProfile.interests.length - 1];
+                suggestions.push(`💡 关于${recentInterest}，有什么想了解的吗？`);
+            }
+            
+            // 基于情感状态的建议
+            if (userProfile.mood === 'positive') {
+                suggestions.push('😊 看起来你心情不错！继续保持这种积极的状态！');
+            } else if (userProfile.mood === 'negative') {
+                suggestions.push('💙 如果有什么烦恼，可以和我聊聊，我会倾听的！');
+            }
+            
+            return suggestions;
+        }
+        
+        // 上下文记忆功能
+        function getContextualResponse(input, analysis) {
+            // 检查对话历史中的相关上下文
+            const recentConversations = conversationHistory.slice(-3);
+            
+            for (const conv of recentConversations) {
+                // 如果用户提到了之前的话题
+                if (conv.analysis.keywords.some(keyword => input.includes(keyword))) {
+                    return `💭 我注意到你提到了${conv.analysis.keywords.find(k => input.includes(k))}，这和之前我们聊过的${conv.user}有关吗？`;
+                }
+            }
+            
+            return null;
+        }
+        
+        // 智能学习系统
+        function learnFromInteraction(userInput, aiResponse, analysis) {
+            // 学习用户偏好
+            if (analysis.emotion === 'positive') {
+                userProfile.preferences.push({
+                    type: 'positive_response',
+                    content: userInput,
+                    timestamp: Date.now()
+                });
+            }
+            
+            // 学习用户兴趣模式
+            analysis.keywords.forEach(keyword => {
+                const existingInterest = userProfile.interests.find(interest => 
+                    interest === keyword || interest.includes(keyword) || keyword.includes(interest)
+                );
+                
+                if (!existingInterest) {
+                    userProfile.interests.push(keyword);
+                }
+            });
+            
+            // 限制学习数据大小
+            if (userProfile.preferences.length > 50) {
+                userProfile.preferences = userProfile.preferences.slice(-50);
+            }
+        }
+        
+        // 智能提醒优化
+        function optimizeReminderTiming(reminderInfo) {
+            const now = new Date();
+            const hour = now.getHours();
+            
+            // 根据时间调整提醒策略
+            if (hour >= 22 || hour < 6) {
+                return {
+                    ...reminderInfo,
+                    priority: 'low',
+                    suggestion: '建议在合适的时间设置提醒'
+                };
+            } else if (hour >= 6 && hour < 9) {
+                return {
+                    ...reminderInfo,
+                    priority: 'high',
+                    suggestion: '早上设置提醒，效果更好'
+                };
+            }
+            
+            return reminderInfo;
+        }
+        
+        // 情感支持系统
+        function provideEmotionalSupport(emotion, sentiment) {
+            if (emotion === 'negative' || sentiment === 'negative') {
+                return [
+                    '💙 我理解你的感受，每个人都会有低落的时候。',
+                    '🤗 你并不孤单，我会一直陪伴在你身边。',
+                    '💪 困难只是暂时的，相信你一定能度过难关。',
+                    '🌟 明天会更好，保持希望和信心！'
+                ];
+            } else if (emotion === 'positive' || sentiment === 'positive') {
+                return [
+                    '😊 看到你这么开心，我也很高兴！',
+                    '🌟 保持这种积极的心态，生活会越来越美好！',
+                    '🎉 你的快乐感染了我，谢谢你的分享！',
+                    '💫 正能量满满，继续加油！'
+                ];
+            }
+            
+            return ['💭 感谢你与我分享你的想法！'];
+        }
+        
+        // 个性化问候
+        function generatePersonalizedGreeting() {
+            const now = new Date();
+            const hour = now.getHours();
+            const dayOfWeek = now.getDay();
+            
+            let greeting = '';
+            
+            // 时间问候
+            if (hour >= 5 && hour < 12) {
+                greeting = '早上好';
+            } else if (hour >= 12 && hour < 18) {
+                greeting = '下午好';
+            } else {
+                greeting = '晚上好';
+            }
+            
+            // 个性化元素
+            if (userProfile.interactionCount > 10) {
+                greeting += `，老朋友`;
+            } else if (userProfile.interactionCount > 0) {
+                greeting += `，朋友`;
+            }
+            
+            // 情感状态
+            if (userProfile.mood === 'positive') {
+                greeting += '！看起来你心情不错';
+            } else if (userProfile.mood === 'negative') {
+                greeting += '！如果有什么需要帮助的，我在这里';
+            }
+            
+            return greeting;
+        }
+        
+        // 智能话题推荐
+        function recommendTopics() {
+            const topics = [];
+            
+            // 基于用户兴趣推荐
+            if (userProfile.interests.length > 0) {
+                const recentInterests = userProfile.interests.slice(-3);
+                recentInterests.forEach(interest => {
+                    topics.push(`聊聊${interest}相关的话题`);
+                });
+            }
+            
+            // 基于时间推荐
+            const now = new Date();
+            const hour = now.getHours();
+            
+            if (hour >= 6 && hour < 9) {
+                topics.push('制定今天的计划');
+                topics.push('分享你的目标');
+            } else if (hour >= 18 && hour < 22) {
+                topics.push('总结今天的收获');
+                topics.push('分享今天的感受');
+            }
+            
+            return topics.slice(0, 3); // 返回最多3个话题
         }
         
         // 打字机效果
@@ -3716,7 +4510,36 @@ END:VCALENDAR`;
             loadStats();
             loadReminders();
             loadLatestRecords(); // 加载最新记录到首页
+            
+            // 初始化麦克风权限检查
+            initMicrophoneCheck();
+            
+            // 初始化智能AI助手
+            initSmartAI();
         };
+        
+        // 初始化智能AI助手
+        function initSmartAI() {
+            // 生成个性化问候
+            const greeting = generatePersonalizedGreeting();
+            const aiGreeting = document.getElementById('aiGreeting');
+            
+            if (aiGreeting) {
+                aiGreeting.textContent = greeting;
+            }
+            
+            // 生成智能建议
+            const suggestions = generateSmartSuggestions();
+            if (suggestions.length > 0) {
+                console.log('智能建议:', suggestions[0]);
+            }
+            
+            // 显示话题推荐
+            const topics = recommendTopics();
+            if (topics.length > 0) {
+                console.log('推荐话题:', topics);
+            }
+        }
     </script>
 </body>
 </html>
